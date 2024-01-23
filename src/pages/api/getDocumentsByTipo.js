@@ -31,9 +31,11 @@ export default async function getDocumentsByTipo(req, res) {
     }
   } catch (error) {
     console.error('Error obteniendo el documento:', error);
-    throw error;
+    // En lugar de lanzar el error, lo enviamos en la respuesta
+    return res.status(500).json({ error: 'Error obteniendo el documento: ' + error.message });
   }
 }
+
 
 
 
