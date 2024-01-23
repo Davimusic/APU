@@ -54,8 +54,6 @@ export default function RootLayout({ children }) {
   async function fetchInfo(nomObj) {
     console.log('fetchInfo nomObj');
     console.log(nomObj);
-    // Define la URL del endpoint de tu función getDocumentByCorreo
-    const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/getDocumentsByTipo';
 
     setNombreObjeto(nomObj)
     setComparacionNombreObjeto(nomObj)
@@ -64,27 +62,32 @@ export default function RootLayout({ children }) {
     // Define el correo que quieres buscar en la base de datos
     const data = { correo: 'davipianof@gmail.com', nombre: nomObj };
   
-    // Realiza una solicitud POST al endpoint
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data), // convierte los datos a una cadena JSON
-    });
+    try {
+      // Realiza una solicitud POST al endpoint
+      const response = await fetch('/api/getDocumentsByTipo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data), // convierte los datos a una cadena JSON
+      });
   
-    // Maneja la respuesta
-    if (!response.ok) {
-      const message = `An error has occurred: ${response.status}`;
-      throw new Error(message);
+      // Maneja la respuesta
+      if (!response.ok) {
+        const message = `An error has occurred: ${response.status}`;
+        throw new Error(message);
+      }
+  
+      const result = await response.json(); // extrae el cuerpo de la respuesta como JSON
+      console.log(result);
+      // Actualiza el estado con la información obtenida
+      setNombresObjetosMatematicos(result.keys)
+      setInfo(result.objeto['objetos']);
+    } catch (error) {
+      console.error('Error obteniendo el documento:', error);
     }
-  
-    const result = await response.json(); // extrae el cuerpo de la respuesta como JSON
-    console.log(result);
-    // Actualiza el estado con la información obtenida
-    setNombresObjetosMatematicos(result.keys)
-    setInfo(result.objeto['objetos']);
-  }
+}
+
   
   useEffect(() => {
     localStorage.setItem('email', 'davipianof@gmail.com')
@@ -630,35 +633,40 @@ function crearNuevoObjeto(){
 async function data() {
   setModalIsOpen(true)
   setErrorMessage('guardando informacion, por favor espere....')
-  // Define la URL del endpoint de tu función createDocument
-  const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/createDocument';
 
   // Define los datos que quieres guardar en la base de datos
-  const data = { correo: localStorage.getItem('email'), 
-                info: info, sumaObjeto: sumaObjetos(), 
-                nombre: nombreObjeto,
-                compararNombre: comparacionNombreObjeto
-                };
+  const data = { 
+    correo: localStorage.getItem('email'), 
+    info: info, 
+    sumaObjeto: sumaObjetos(), 
+    nombre: nombreObjeto,
+    compararNombre: comparacionNombreObjeto
+  };
 
-  // Realiza una solicitud POST al endpoint
-  const response = await fetch(url, {
-    method: 'POST', // o 'PUT'
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data), // convierte los datos a una cadena JSON
-  });
+  try {
+    // Realiza una solicitud POST al endpoint
+    const response = await fetch('/api/createDocument', {
+      method: 'POST', // o 'PUT'
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data), // convierte los datos a una cadena JSON
+    });
 
-  // Maneja la respuesta
-  if (!response.ok) {
-    const message = `An error has occurred: ${response.status}`;
-    throw new Error(message);
+    // Maneja la respuesta
+    if (!response.ok) {
+      const message = `An error has occurred: ${response.status}`;
+      throw new Error(message);
+    }
+
+    const result = await response.json(); // extrae el cuerpo de la respuesta como JSON
+    llamarNombresObjetosMatematicos()
+    setErrorMessage('cambios guardados exitosamente')
+  } catch (error) {
+    console.error('Error guardando el documento:', error);
   }
-
-  const result = await response.json(); // extrae el cuerpo de la respuesta como JSON
-  llamarNombresObjetosMatematicos()
-  setErrorMessage('cambios guardados exitosamente')
 }
+
 
 const handleInputComparacionNombreObjeto = (event) => {
   setComparacionNombreObjeto(event.target.value);
@@ -711,31 +719,34 @@ function crearNuevoObjetoMatematicoEnDb(){
   }
 }
 
-async function llamarNombresObjetosMatematicos(){
-  const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/getKeys';
-
+async function llamarNombresObjetosMatematicos() {
   // Define los datos que quieres enviar a la base de datos
   const data = { correo: localStorage.getItem('email') };
 
-  // Realiza una solicitud POST al endpoint
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data), // convierte los datos a una cadena JSON
-  });
+  try {
+    // Realiza una solicitud POST al endpoint
+    const response = await fetch('/api/getKeys', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data), // convierte los datos a una cadena JSON
+    });
 
-  // Maneja la respuesta
-  if (!response.ok) {
-    const message = `An error has occurred: ${response.status}`;
-    throw new Error(message);
+    // Maneja la respuesta
+    if (!response.ok) {
+      const message = `An error has occurred: ${response.status}`;
+      throw new Error(message);
+    }
+
+    const keys = await response.json();
+
+    setNombresObjetosMatematicos(keys)
+  } catch (error) {
+    console.error('Error obteniendo las claves:', error);
   }
-
-  const keys = await response.json();
-
-  setNombresObjetosMatematicos(keys)
 }
+
 
 function editarNombreObjetoMatematico(){
   setModalIsOpen(true)
