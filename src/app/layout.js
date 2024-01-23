@@ -910,7 +910,7 @@ function Menu(){
           })}
         </div>  
         <Modal
-          appElement={document.getElementById('RootLayout')}
+          //appElement={document.getElementById('RootLayout')}
           isOpen={modalIsOpen}
           onRequestClose={() => {setModalIsOpen(false); setErrorMessage(null); setEditNombreObjetoMatematico(false)}}
           style={{
