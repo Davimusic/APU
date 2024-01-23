@@ -55,7 +55,7 @@ export default function RootLayout({ children }) {
     console.log('fetchInfo nomObj');
     console.log(nomObj);
     // Define la URL del endpoint de tu función getDocumentByCorreo
-    const url = 'http://localhost:3000/api/getDocumentsByTipo';
+    const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/getDocumentsByTipo';
 
     setNombreObjeto(nomObj)
     setComparacionNombreObjeto(nomObj)
@@ -631,7 +631,7 @@ async function data() {
   setModalIsOpen(true)
   setErrorMessage('guardando informacion, por favor espere....')
   // Define la URL del endpoint de tu función createDocument
-  const url = 'http://localhost:3000/api/createDocument';
+  const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/createDocument';
 
   // Define los datos que quieres guardar en la base de datos
   const data = { correo: localStorage.getItem('email'), 
@@ -712,7 +712,7 @@ function crearNuevoObjetoMatematicoEnDb(){
 }
 
 async function llamarNombresObjetosMatematicos(){
-  const url = 'http://localhost:3000/api/getKeys';
+  const url = 'https://apu-6mxv8cc0u-davimusic.vercel.app/api/getKeys';
 
   // Define los datos que quieres enviar a la base de datos
   const data = { correo: localStorage.getItem('email') };
