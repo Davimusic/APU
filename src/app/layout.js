@@ -228,9 +228,6 @@ export default function RootLayout({ children }) {
     }    
   }, [newPath, modalIsOpen, modalContent, coorPaso, usar, selectValues, selectedValue, errorMessage, info]);*/
 
-  useEffect(() => {
-    console.log(JSON.stringify(coorPaso));
-  }, [coorPaso]);
 
   function reemplazarValores(arr, valorAntiguo, valorNuevo) {
   for (let i = 0; i < arr.length; i++) {
@@ -251,42 +248,46 @@ export default function RootLayout({ children }) {
   }
 
   function renderSelects(item, index, path = [], isTopLevel = false) {
-    const newPath = [...path, index];
-    let selectValue = selectValues;
-    for (let i = 0; i < newPath.length; i++) {
-      selectValue = selectValue[newPath[i]];
-    }
-    if (Array.isArray(item)) {
-      const content = item.map((subItem, subIndex) => renderSelects(subItem, subIndex, newPath));
-      return (
-        <div key={index} style={{display: 'flex'}}>
-          {isTopLevel && <img onClick={() => nuevoSubcalculo(newPath)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" alt="Agregar Nuevo subcalculo" title="Agregar nuevo subcalculo"/>}
-          {isTopLevel && <img onClick={() => otro(newPath, item)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706029237/eye_dkbvst.png" alt="Descripción de la imagen" title="Editar subcalculo" />}
-          {isTopLevel ? content : <>{<div style={{padding: '12px 20px', margin: '8px 0'}}>(</div>}{content}{<div style={{padding: '12px 20px', margin: '8px 0'}}>)</div>}</>}
-        </div>
-      );
+    if(info.length === 0){
+      return null
     } else {
-      return (
-        <div key={index} style={{display: 'flex', alignItems: 'center'}}>
-          {modalContent.hasOwnProperty('item') && (
-            <>
-              <button onClick={() => handleDelete(newPath)}>Borrar</button>
-              {(index === 1 || index === 3) && <button onClick={() => handleAdd(newPath)}>Agregar</button>}
-            </>
-          )}
-          <select style={{width: 'fit-content'}} className="select-moderno" value={selectValue || item} onChange={(event) => handleSelectChange(newPath, event)}>
-            {index === 1 ? ['+', '-', '*', '/', '%'].map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            )) : Object.keys(info[coorPaso.newCoor]).filter(option => !isNaN(info[coorPaso.newCoor][option]) && option !== 'valor dinamico').map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
+      const newPath = [...path, index];
+      let selectValue = selectValues;
+      for (let i = 0; i < newPath.length; i++) {
+        selectValue = selectValue[newPath[i]];
+      }
+      if (Array.isArray(item)) {
+        const content = item.map((subItem, subIndex) => renderSelects(subItem, subIndex, newPath));
+        return (
+          <div key={index} style={{display: 'flex'}}>
+            {isTopLevel && <img onClick={() => nuevoSubcalculo(newPath)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" alt="Agregar Nuevo subcalculo" title="Agregar nuevo subcalculo"/>}
+            {isTopLevel && <img onClick={() => otro(newPath, item)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706029237/eye_dkbvst.png" alt="Descripción de la imagen" title="Editar subcalculo" />}
+            {isTopLevel ? content : <>{<div style={{padding: '12px 20px', margin: '8px 0'}}>(</div>}{content}{<div style={{padding: '12px 20px', margin: '8px 0'}}>)</div>}</>}
+          </div>
+        );
+      } else {
+        return (
+          <div key={index} style={{display: 'flex', alignItems: 'center'}}>
+            {modalContent.hasOwnProperty('item') && (
+              <>
+                <button onClick={() => handleDelete(newPath)}>Borrar</button>
+                {(index === 1 || index === 3) && <button onClick={() => handleAdd(newPath)}>Agregar</button>}
+              </>
+            )}
+            <select style={{width: 'fit-content'}} className="select-moderno" value={selectValue || item} onChange={(event) => handleSelectChange(newPath, event)}>
+              {index === 1 ? ['+', '-', '*', '/', '%'].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              )) : Object.keys(info[coorPaso.newCoor]).filter(option => !isNaN(info[coorPaso.newCoor][option]) && option !== 'valor dinamico').map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      }
     }
   }
   
@@ -357,54 +358,58 @@ function retornarValorNumerico(idArreglo){
 }
 
 function editarMatriz(arreglo, nivel = 0, coor = []) {
-  let elementos = [];
-  for (let i = 0; i < arreglo.length; i++) {
-      let newPath = [...coor, i];
-      if (Array.isArray(arreglo[i])) {
-          elementos.push(
-              <div key={i} style={{ display: 'flex', flexDirection: 'row', marginLeft: nivel * 20, borderRadius: '0.7em', backgroundColor: '#870ada52' }}>
-                  {i !== 1 && <img onClick={() => muestra(newPath)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" title="Borrar subseccion matematica" alt="Descripción de la imagen" />}
-                  <div style={{padding: '12px 20px', margin: '8px 0'}}>
-                      {[...Array(nivel)].map((e, j) => <br key={j} />)}
-                      (
-                  </div>
-                  {editarMatriz(arreglo[i], nivel + 1, newPath)}
-                  <div style={{padding: '12px 20px', margin: '8px 0'}}>
-                      {[...Array(nivel)].map((e, j) => <br key={j} />)}
-                      )
-                  </div>
-              </div>
-          );
-      } else {
-          elementos.push(
-              <h1 key={i} style={{ padding: '10px'}}>
-                  {i === 1 && <div style={{height:'55px'}}></div>}
-                  {i !== 1 && <img onClick={() => agregarSub(newPath)} className="imagenes"  src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" title="Agregar nuevas subcalculos matematicos" alt="Descripción de la imagen" />}
-                  <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                      {[...Array(nivel)].map((e, j) => <br key={j+1} />)}
-                      <select style={{width: 'fit-content'}} className="select-moderno" value={arreglo[i]} onChange={(event) => handleSelectChange(newPath, event)}>
-                          {i === 1 ? ['+', '-', '*', '/', '%'].map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          )) : Object.keys(info[coorPaso.newCoor]).filter(option => !isNaN(info[coorPaso.newCoor][option])).map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                      </select>
-                  </div>
-              </h1>
-          );
-      }
-  }
-  if(nivel === 0){
-    return <>
-              <img onClick={() => borrar()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" alt="Agregar Nuevo subcalculo" title="Borrar seccion completa"/>
-              <div style={{ display: 'flex', flexDirection: nivel === 0 ? 'row' : 'row' }}>{elementos}</div>
-          </>
+  if(info.length === 0){
+    return null
   } else {
-    return <div style={{ display: 'flex', flexDirection: nivel === 0 ? 'row' : 'row' }}>{elementos}</div>
+    let elementos = [];
+    for (let i = 0; i < arreglo.length; i++) {
+        let newPath = [...coor, i];
+        if (Array.isArray(arreglo[i])) {
+            elementos.push(
+                <div key={i} style={{ display: 'flex', flexDirection: 'row', marginLeft: nivel * 20, borderRadius: '0.7em', backgroundColor: '#870ada52' }}>
+                    {i !== 1 && <img onClick={() => muestra(newPath)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" title="Borrar subseccion matematica" alt="Descripción de la imagen" />}
+                    <div style={{padding: '12px 20px', margin: '8px 0'}}>
+                        {[...Array(nivel)].map((e, j) => <br key={j} />)}
+                        (
+                    </div>
+                    {editarMatriz(arreglo[i], nivel + 1, newPath)}
+                    <div style={{padding: '12px 20px', margin: '8px 0'}}>
+                        {[...Array(nivel)].map((e, j) => <br key={j} />)}
+                        )
+                    </div>
+                </div>
+            );
+        } else {
+            elementos.push(
+                <h1 key={i} style={{ padding: '10px'}}>
+                    {i === 1 && <div style={{height:'55px'}}></div>}
+                    {i !== 1 && <img onClick={() => agregarSub(newPath)} className="imagenes"  src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" title="Agregar nuevas subcalculos matematicos" alt="Descripción de la imagen" />}
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                        {[...Array(nivel)].map((e, j) => <br key={j+1} />)}
+                        <select style={{width: 'fit-content'}} className="select-moderno" value={arreglo[i]} onChange={(event) => handleSelectChange(newPath, event)}>
+                            {i === 1 ? ['+', '-', '*', '/', '%'].map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            )) : Object.keys(info[coorPaso.newCoor]).filter(option => !isNaN(info[coorPaso.newCoor][option])).map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                        </select>
+                    </div>
+                </h1>
+            );
+        }
+    }
+    if(nivel === 0){
+      return <>
+                <img onClick={() => borrar()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" alt="Agregar Nuevo subcalculo" title="Borrar seccion completa"/>
+                <div style={{ display: 'flex', flexDirection: nivel === 0 ? 'row' : 'row' }}>{elementos}</div>
+            </>
+    } else {
+      return <div style={{ display: 'flex', flexDirection: nivel === 0 ? 'row' : 'row' }}>{elementos}</div>
+    }
   }
 }
 
@@ -676,9 +681,10 @@ const handleInputNombreNuevoObjetoMatematico = (event) => {
   setNombreNuevoObjetoMatematico(event.target.value);
 }
 
-const handleSelectChangeNombresObjetosMatematicos = (event) => {
-  setObjetoMatematicoEnUso(event.target.value)
-  setInfo([])
+async function handleSelectChangeNombresObjetosMatematicos(event){
+  setCoorPaso({"newCoor":0,"key":"valor unitario"})
+  setObjetoMatematicoEnUso(event.target.value);
+  setInfo([]);
   fetchInfo(event.target.value)
 }
 
@@ -859,7 +865,7 @@ function Menu(){
             </select>  
           </div>
         }
-        <div style={{height: '75vh'}} className='scroll'>
+        <div style={{height: '85vh'}} className='scroll'>
           {info.map((item, index) => {
             if (item && typeof item === 'object') {
               item['acumulado'] = 0; // Reset the array for each item
