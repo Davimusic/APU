@@ -75,6 +75,22 @@ H2{
   object-fit: cover;
 }
 
+.imagenFondo::after {
+  content: "";
+  background: url('https://res.cloudinary.com/dplncudbq/image/upload/v1656097007/mias/h2_jy6hgj.jpg');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  filter: blur(5px);
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+
 
 
 
