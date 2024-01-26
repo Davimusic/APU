@@ -9,7 +9,7 @@ function Home() {
   return (
     <div >
       <h1>hola mundo</h1>
-      <RootLayout></RootLayout>
+      
     </div>
   );
 }
