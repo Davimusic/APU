@@ -67,16 +67,17 @@ export function ApuMicro(){
         setNombresObjetosMatematicos(result.keys)
         console.log('compara');
         console.log(result.objeto['objetos']);
+        setReduxInfo(result.objeto['objetos'])
         dispatch(updateInfo(result.objeto['objetos']))//debe entregar solo el arreglo de cada llave
         } catch (error) {
         console.error('Error obteniendo el documento:', error);
         }
     }
 
-    /*useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('email', 'davipianof@gmail.com')
         llamarNombresObjetosMatematicos()
-    }, []); */
+    }, []); 
 
     useEffect(() => {
         console.log(objetoMatematico);
@@ -86,17 +87,23 @@ export function ApuMicro(){
           setNombreObjeto(objetoMatematico['llaves'][0])
           setComparacionNombreObjeto(objetoMatematico['llaves'][0])
           setObjetoMatematicoEnUso(objetoMatematico['llaves'][0])
+
+          console.log(objetoMatematico['diccionario arreglado'][objetoMatematicoEnUso]);
+          //setReduxInfo(objetoMatematico)
         }
       }, [objetoMatematico]);
-      
 
-    /*useEffect(() => {
+    
+
+    useEffect(() => {
         if(nombresObjetosMatematicos[0] !== undefined && !hasFetched){
         fetchInfo(nombresObjetosMatematicos[0]);
         setHasFetched(true);
         }
-    }, [nombresObjetosMatematicos]);*/
+    }, [nombresObjetosMatematicos]);
 
+    
+    
     function calculation(item, arr) {
         const operations = {
         '+': (a, b) => Number(a) + Number(b),
@@ -690,11 +697,7 @@ export function ApuMicro(){
             </head>
             <body>
                 <Menu></Menu>
-                {reduxInfo.length === 0 ? 
-                <div className="miContenedor">
-                    <div className="miCirculoGiratorio"></div>
-                </div>
-                : 
+                
                 <div className="centrar scroll" style={{display: 'flex', flexWrap: 'wrap', height: 'fit-content', padding: '20px', borderBottom: '1px solid white', backgroundColor: '#00000071'}}>                    
                     <h2 style={{paddingTop: '15px'}}>Total operación: $ {sumaObjetos()}</h2>
                     <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
@@ -709,7 +712,7 @@ export function ApuMicro(){
                     ))}
                     </select>  
                 </div>
-                }
+                
                 <div style={{height: '85vh'}} className='scroll imagenFondo'>
                 {reduxInfo.map((item, index) => {
                     if (item && typeof item === 'object') {
