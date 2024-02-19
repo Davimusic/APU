@@ -5,15 +5,15 @@ import { updateInfo } from "@/funciones/redux/actions";
 import '../estilos/menu.css'
 import '../../src/app/globals.css'
 
-import llamarTodoObjetoMatematico from "@/funciones/conectoresBackend/llamarTodoObjetoMatematico";
-import { retornarLlavesValoresProcesados } from "@/funciones/conectoresBackend/retornarLlavesValoresProcesados";
+//import llamarTodoObjetoMatematico from "@/funciones/conectoresBackend/llamarTodoObjetoMatematico";
+//import { retornarLlavesValoresProcesados } from "@/funciones/conectoresBackend/retornarLlavesValoresProcesados";
 
 export function Menu(){
     const router = useRouter();
     const dispatch = useDispatch();
     const [isOpen, setIsOpen] = useState(false);
 
-    useEffect(() => {
+    /*useEffect(() => {
         llamarTodoObjetoMatematico().then(newObject => {
             console.log('llega menu');
             console.log(newObject);
@@ -24,7 +24,7 @@ export function Menu(){
                 dispatch(updateInfo(en))
             }
         });
-    }, [router.asPath]);
+    }, [router.asPath]);*/
 
     const handleNavigation = (ruta) => {
         router.push(ruta);

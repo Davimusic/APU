@@ -11,3 +11,10 @@ export const updateInfo = (value) => {
         payload: value,
     };
 };
+
+export const updateObjetosMatematicos = (value) => {
+    return {
+        type: 'UPDATE_OBJETOS_MATEMATICOS',
+        payload: value,
+    };
+};

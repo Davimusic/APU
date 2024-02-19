@@ -4,22 +4,20 @@ import "./globals.css";
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { Menu } from "@/components/menu";
-
+import llamarTodoObjetoMatematico from "@/funciones/conectoresBackend/llamarTodoObjetoMatematico";
 
 //redux
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { updateInfo } from "@/funciones/redux/actions";
-
-
+import { updateInfo, updateMirar, updateObjetosMatematicos } from "@/funciones/redux/actions";
 
 
 export function ApuMicro(){
     const [objetoMatematicoEnUso, setObjetoMatematicoEnUso] = useState('');
-    const [nombresObjetosMatematicos, setNombresObjetosMatematicos] = useState([]);
+    const [nombresObjetosMatematicos, setNombresObjetosMatematicos] = useState(['casa', 'perro']);
     const [nombreNuevoObjetoMatematico, setNombreNuevoObjetoMatematico] = useState('');
-    const [nombreObjeto, setNombreObjeto] = useState('');
-    const [comparacionNombreObjeto, setComparacionNombreObjeto] = useState('');
+    const [nombreObjeto, setNombreObjeto] = useState('perro');
+    const [comparacionNombreObjeto, setComparacionNombreObjeto] = useState('newName');
     const [editNombreObjetoMatematico, setEditNombreObjetoMatematico] = useState(false);
 
     const [newPath, setNewPath] = useState(0);
@@ -30,113 +28,153 @@ export function ApuMicro(){
     const [selectValues, setSelectValues] = useState({});
     const [errorMessage, setErrorMessage] = useState(null);
     const [selectedValue, setSelectedValue] = useState('numero');
-    const [reduxInfo, setReduxInfo] = useState([]);
-    const [hasFetched, setHasFetched] = useState(false);
+    const [activarGuardar, setActivarGuardar] = useState(0);
 
     //redux
+    const objetosMatematicos = useSelector(state => state.objetosMatematicos);
     const objetoMatematico = useSelector(state => state.objetoMatematico);
     const dispatch = useDispatch();
 
+    useEffect(() => {
+        setNombresObjetosMatematicos(nombresObjetosMatematicos.sort())
+    }, [nombresObjetosMatematicos, objetoMatematicoEnUso]);
 
-    async function fetchInfo(nomObj) {
-        console.log('fetchInfo nomObj');
-        console.log(nomObj);
+    useEffect(() => {
+        const fetchData = async () => {
+            localStorage.setItem('email', 'davipianof@gmail.com')
+            const result = await llamarTodoObjetoMatematico();
 
-        setNombreObjeto(nomObj)
-        setComparacionNombreObjeto(nomObj)
-        setObjetoMatematicoEnUso(nomObj)
+            console.log(result);
+            console.log(result['objetos'][0]);
+
+            let obj = result['objetos'][0]
+            let objKeys = Object.keys(result['objetos'][0])
+
+            dispatch(updateObjetosMatematicos(obj))
+            setNombresObjetosMatematicos(objKeys)
+            dispatch(updateInfo(obj[objKeys[0]]))//dispatch(updateInfo(obj[objKeys[0]]['objetos']))
+            console.log(objetoMatematico);
+            console.log(obj[objKeys[0]]);
+            setObjetoMatematicoEnUso(objKeys[0])
+            //setReduxInfo(obj[objKeys[0]]['objetos'])
+            
+            try {
+                const response = await fetch('/api/createDocument', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data), 
+                });
+            
+                if (!response.ok) {
+                    const message = `An error has occurred: ${response.status}`;
+                    throw new Error(message);
+                }
+            
+                const result = await response.json();
+                console.log(result);
+                return result;
+            } catch (error) {
+                console.error('Error al guardar el objeto:', error);
+            }
+        };
     
-        const data = { correo: 'davipianof@gmail.com', nombre: nomObj };
+        fetchData();
+    }, []);
+
+    function cambiarNombreLlave(obj, llaveVieja, llaveNueva) {
+        if (obj.hasOwnProperty(llaveVieja)) {
+            obj[llaveNueva] = obj[llaveVieja];
+            delete obj[llaveVieja];
+        }
+        return obj;
+    }
+    
+    
+    async function savePrueba(newObj) {
+        const data = { 
+            correo: localStorage.getItem('email'), 
+            info: newObj, 
+        };
     
         try {
-        const response = await fetch('/api/getDocumentsByTipo', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data), 
-        });
+            const response = await fetch('/api/saveAllData', {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data), 
+            });
     
-        if (!response.ok) {
-            const message = `An error has occurred: ${response.status}`;
-            throw new Error(message);
-        }
+            if (!response.ok) {
+                const errorData = await response.json();
+                const message = `An error has occurred: ${response.status}, ${errorData.error}`;
+                errorData.error === 'Nombre ya existente en la base de datos' ? setErrorMessage(`${errorData.error}, no puedes tener el mismo nombre como referencia, usa otro.`) : null
+                throw new Error(message);
+            }
     
-        const result = await response.json(); 
-        console.log(result);
-        setNombresObjetosMatematicos(result.keys)
-        console.log('compara');
-        console.log(result.objeto['objetos']);
-        setReduxInfo(result.objeto['objetos'])
-        dispatch(updateInfo(result.objeto['objetos']))//debe entregar solo el arreglo de cada llave
+            const result = await response.json(); 
+            setErrorMessage('Cambios guardados exitosamente')
+            return result; // Devuelve el resultado
         } catch (error) {
-        console.error('Error obteniendo el documento:', error);
+            console.log(error);
+            console.error('Error guardando el documento:', error);
+            return error; // Devuelve el error
         }
     }
 
     useEffect(() => {
-        localStorage.setItem('email', 'davipianof@gmail.com')
-        llamarNombresObjetosMatematicos()
-    }, []); 
+        if (objetoMatematico.length !== 0 && objetoMatematicoEnUso !== '') {
+            guardarCambios().then(result => {
+                if(result === 'funciono'){
 
-    useEffect(() => {
-        console.log(objetoMatematico);
-        if (objetoMatematico && objetoMatematico['llaves'] && objetoMatematico['llaves'][0] !== undefined){
-            console.log('entra');
-            console.log(objetoMatematico);
-          setNombreObjeto(objetoMatematico['llaves'][0])
-          setComparacionNombreObjeto(objetoMatematico['llaves'][0])
-          setObjetoMatematicoEnUso(objetoMatematico['llaves'][0])
-
-          console.log(objetoMatematico['diccionario arreglado'][objetoMatematicoEnUso]);
-          //setReduxInfo(objetoMatematico)
+                } else {
+                    alert('error al tratar de guardar')
+                }
+            });
         }
-      }, [objetoMatematico]);
+    }, [activarGuardar]);
 
-    
-
-    useEffect(() => {
-        if(nombresObjetosMatematicos[0] !== undefined && !hasFetched){
-        fetchInfo(nombresObjetosMatematicos[0]);
-        setHasFetched(true);
-        }
-    }, [nombresObjetosMatematicos]);
-
-    
-    
     function calculation(item, arr) {
+        //console.log(arr);
         const operations = {
-        '+': (a, b) => Number(a) + Number(b),
-        '-': (a, b) => Number(a) - Number(b),
-        '*': (a, b) => Number(a) * Number(b),
-        '/': (a, b) => Number(a) / Number(b),
-        '%': (a, b) => Number(a) % Number(b),
+            '+': (a, b) => Number(a) + Number(b),
+            '-': (a, b) => Number(a) - Number(b),
+            '*': (a, b) => Number(a) * Number(b),
+            '/': (a, b) => Number(a) / Number(b),
+            '%': (a, b) => Number(a) % Number(b),
         };
     
         let a = Array.isArray(arr[0]) ? calculation(item, arr[0]) : (arr[0] === 'acumulado' ? item['acumulado'] : item[arr[0]]);
         let b = Array.isArray(arr[2]) ? calculation(item, arr[2]) : (arr[2] === 'acumulado' ? item['acumulado'] : item[arr[2]]);
     
-        let result = operations[arr[1]](Number(a), Number(b));
-    
-        item['acumulado'] = result;
-        return result;
+        if (operations.hasOwnProperty(arr[1])) {
+            let result = operations[arr[1]](Number(a), Number(b));
+            item['acumulado'] = result;
+            return result;
+        } else {
+            console.error(`Operación no válida: ${arr[1]}`);
+            return null;
+        }
     }
+    
 
     const handleOnClick = (tittle, subtittle, key, value) => {
-        for (let newCoor = 0; newCoor < reduxInfo.length; newCoor++) {
-            if(tittle === reduxInfo[newCoor]['titulo']){
+        for (let newCoor = 0; newCoor < objetoMatematico.length; newCoor++) {
+            if(tittle === objetoMatematico[newCoor]['titulo']){
                 setCoorPaso({newCoor, key})
                 if(key === 'valor unitario'){
-                    setSelectValues(reduxInfo[newCoor][key])
-                    setModalContent({ tittle, subtittle, key, value: reduxInfo[newCoor][key] });
+                    setSelectValues(objetoMatematico[newCoor][key])
+                    setModalContent({ tittle, subtittle, key, value: objetoMatematico[newCoor][key] });
                 } else {
                     setModalContent({ tittle, subtittle, key, value });
                 }
             } else if(tittle === 'titulo' || tittle === 'subtitulo'){
-                if(reduxInfo[newCoor]['titulo'] === subtittle){
+                if(objetoMatematico[newCoor]['titulo'] === subtittle){
                     setCoorPaso({newCoor, tittle, subtittle })
                     setModalContent({ subtittle });
-                } else if(reduxInfo[newCoor]['subtitulo'] === subtittle){
+                } else if(objetoMatematico[newCoor]['subtitulo'] === subtittle){
                     setCoorPaso({newCoor, tittle, subtittle })
                     setModalContent({ subtittle });
                 } 
@@ -158,7 +196,7 @@ export function ApuMicro(){
         let bandera = 0
 
         if(modalContent.key !== coorPaso.key && coorPaso.newCoor != undefined){
-            for (let key in reduxInfo[coorPaso.newCoor]){
+            for (let key in objetoMatematico[coorPaso.newCoor]){
                 if(key === modalContent.key) {
                 setErrorMessage(`No se puede realizar la acción: el valor de ${modalContent.key.toUpperCase()} ya existe en el objeto ${modalContent.tittle.toUpperCase()}, usa otro nombre`);
                 bandera = 1;
@@ -166,7 +204,7 @@ export function ApuMicro(){
             }
         }
 
-        reduxInfo.forEach((item) => {
+        objetoMatematico.forEach((item) => {
             if ((item.titulo === modalContent.subtittle) || (item.subtitulo === modalContent.subtittle) && modalContent.hasOwnProperty('item')) {
                 bandera = 1
                 setErrorMessage(`No se puede realizar la acción: el valor de ${modalContent.subtittle} ya existe en otro objeto como titulo o subtitulo`);
@@ -174,9 +212,9 @@ export function ApuMicro(){
         });
 
         if (coorPaso.newCoor != undefined && bandera == 0){
-        for (let u = 0; u < reduxInfo.length; u++) {
+        for (let u = 0; u < objetoMatematico.length; u++) {
             if(u === coorPaso.newCoor){
-                for (let key in reduxInfo[u]) {
+                for (let key in objetoMatematico[u]) {
                     if(coorPaso.tittle == 'titulo' && key === coorPaso.tittle){ 
                         newDicc[key]= modalContent.subtittle
                     } else if(coorPaso.tittle == 'subtitulo' && key === coorPaso.tittle){
@@ -188,7 +226,7 @@ export function ApuMicro(){
                         newDicc[modalContent.key] = modalContent.value;
                         }
                     } else {
-                        newDicc[key]= reduxInfo[u][key]
+                        newDicc[key]= objetoMatematico[u][key]
                     } 
                 }
                 if(coorPaso.tittle != 'titulo' && coorPaso.tittle != 'subtitulo'){
@@ -196,7 +234,7 @@ export function ApuMicro(){
                 }
                 newArr.push(newDicc)
             } else {
-                newArr.push(reduxInfo[u])
+                newArr.push(objetoMatematico[u])
             }
         }
         dispatch(updateInfo(newArr))
@@ -215,7 +253,7 @@ export function ApuMicro(){
     }
 
     function renderSelects(item, index, path = [], isTopLevel = false) {
-        if(reduxInfo.length === 0){
+        if(objetoMatematico.length === 0){
             return null
         } else {
             const newPath = [...path, index];
@@ -246,7 +284,7 @@ export function ApuMicro(){
                         <option key={option} value={option}>
                         {option}
                         </option>
-                    )) : Object.keys(reduxInfo[coorPaso.newCoor]).filter(option => !isNaN(reduxInfo[coorPaso.newCoor][option]) && option !== 'valor dinamico').map((option) => (
+                    )) : Object.keys(objetoMatematico[coorPaso.newCoor]).filter(option => !isNaN(objetoMatematico[coorPaso.newCoor][option]) && option !== 'valor dinamico').map((option) => (
                         <option key={option} value={option}>
                         {option}
                         </option>
@@ -265,14 +303,14 @@ export function ApuMicro(){
     }
 
     const nuevoSubcalculo = (newPath) => {
-        let inf = [...reduxInfo];
+        let inf = [...objetoMatematico];
         inf[coorPaso.newCoor]['valor unitario'].splice(newPath+1, 0, ['acumulado', '*', 'acumulado']);
         console.log(inf[coorPaso.newCoor]['valor unitario']);
         dispatch(updateInfo(inf))
     }
 
     function muestra(arr){
-        let inf = reduxInfo;
+        let inf = objetoMatematico;
         if(arr.length == 1){
         inf[coorPaso.newCoor]['valor unitario'][newPath[0]][arr[0]] = retornarValorNumerico(coorPaso.newCoor)
         } else if(arr.length != 1){
@@ -283,7 +321,7 @@ export function ApuMicro(){
     }
 
     function agregarSub(arr){
-        let inf = reduxInfo;
+        let inf = objetoMatematico;
         let target = inf[coorPaso.newCoor]['valor unitario'][newPath[0]];
         for(let i = 0; i < arr.length; i++){
             if(i === arr.length - 1){
@@ -300,7 +338,7 @@ export function ApuMicro(){
     }
 
     function retornarValorNumerico(idArreglo){
-        let inf = reduxInfo[idArreglo];
+        let inf = objetoMatematico[idArreglo];
         for (let key in inf) {
             if(typeof inf[key] === 'number') {
             return key;
@@ -309,7 +347,7 @@ export function ApuMicro(){
     }
 
     function editarMatriz(arreglo, nivel = 0, coor = []) {
-        if(reduxInfo.length === 0){
+        if(objetoMatematico.length === 0){
             return null
         } else {
             let elementos = [];
@@ -342,7 +380,7 @@ export function ApuMicro(){
                                     <option key={option} value={option}>
                                         {option}
                                     </option>
-                                    )) : Object.keys(reduxInfo[coorPaso.newCoor]).filter(option => !isNaN(reduxInfo[coorPaso.newCoor][option])).map((option) => (
+                                    )) : Object.keys(objetoMatematico[coorPaso.newCoor]).filter(option => !isNaN(objetoMatematico[coorPaso.newCoor][option])).map((option) => (
                                     <option key={option} value={option}>
                                         {option}
                                     </option>
@@ -366,7 +404,7 @@ export function ApuMicro(){
 
 
     function handleSelectChange(path, event) {
-        let inf = reduxInfo
+        let inf = objetoMatematico
         if (modalContent.hasOwnProperty('item')) {
             if(path.length === 1){
                 inf[coorPaso.newCoor]['valor unitario'][newPath[0]][path[0]] = event.target.value;
@@ -450,7 +488,7 @@ export function ApuMicro(){
     }
 
     function borrar(){
-        let inf = reduxInfo
+        let inf = objetoMatematico
         let newArr = []
         if(inf[coorPaso.newCoor]['valor unitario'].length === 1){
             setErrorMessage('Debe haber al menos un solo subcalculo disponible')
@@ -467,7 +505,7 @@ export function ApuMicro(){
     }
 
     function borrarLlaveValor(){
-        let inf = reduxInfo
+        let inf = objetoMatematico
         let valoresReaccionados = reemplazarNombre(inf[coorPaso.newCoor]['valor unitario'], coorPaso.key, retornarValorNumerico(coorPaso.newCoor))
         let newArr = {}
         for (let llave in inf[coorPaso.newCoor]) {
@@ -484,20 +522,25 @@ export function ApuMicro(){
     }
 
     function sumaObjetos(){
-        let totalGlobal = 0
-        for (let e = 0; e < reduxInfo.length; e++) {
-            totalGlobal += reduxInfo[e]['acumulado'] * reduxInfo[e]['valor dinamico']
+        //console.log(JSON.stringify(objetoMatematico));
+        if(objetoMatematico === undefined ){
+            return null
+        } else {
+            let totalGlobal = 0
+            for (let e = 0; e < objetoMatematico.length; e++) {
+                totalGlobal += objetoMatematico[e]['acumulado'] * objetoMatematico[e]['valor dinamico']
+            }
+            return Math.round(totalGlobal);
         }
-        return Math.round(totalGlobal);
     }
 
     function agregarNuevoLlaveValor(acc){
         if(acc !== 'numero' && acc !== 'texto'){
-            const newCoor = reduxInfo.findIndex(item => item['titulo'] === acc);
+            const newCoor = objetoMatematico.findIndex(item => item['titulo'] === acc);
             setCoorPaso({newCoor, acc: 'nueva llave valor'});
             setModalIsOpen(true);
         } else {
-            let inf = [...reduxInfo];
+            let inf = [...objetoMatematico];
             let baseKeyName = acc === 'numero' ? 'nuevoNum' : 'nuevoText';
             let newKeyName = baseKeyName;
             let i = 0;
@@ -512,20 +555,20 @@ export function ApuMicro(){
     }
 
     function destruirObjeto(acc){
-        if (reduxInfo.length <= 1) {
+        if (objetoMatematico.length <= 1) {
             setModalIsOpen(true);
             setErrorMessage('Debe haber al menos un solo objeto en uso');
         } else {
-            const newCoor = reduxInfo.findIndex(item => item['titulo'] === acc);
+            const newCoor = objetoMatematico.findIndex(item => item['titulo'] === acc);
             if (newCoor === -1) return; 
-            let newArr = reduxInfo.filter((item, index) => index !== newCoor);
+            let newArr = objetoMatematico.filter((item, index) => index !== newCoor);
             dispatch(updateInfo(newArr))
         }
     }
 
     function totalObjetosHijos(acc){
-        const newCoor = reduxInfo.findIndex(item => item['titulo'] === acc);
-        return Math.round(reduxInfo[newCoor]['acumulado'] * reduxInfo[newCoor]['valor dinamico']);
+        const newCoor = objetoMatematico.findIndex(item => item['titulo'] === acc);
+        return Math.round(objetoMatematico[newCoor]['acumulado'] * objetoMatematico[newCoor]['valor dinamico']);
     }
 
     function crearNuevoObjeto(){
@@ -541,18 +584,18 @@ export function ApuMicro(){
                         'valor unitario': [['rendimiento', '*', 'precio unitario']],
                         'valor dinamico': 1
         }
-        let inf = [...reduxInfo] 
+        let inf = [...objetoMatematico] 
         let newName = 'newObject', newSubname = 'newSubObject'
         let unique = false;
         while (!unique) {
             unique = true;
-            for (let u = 0; u < reduxInfo.length; u++) {
-            if (reduxInfo[u]['titulo'] === newName) {
+            for (let u = 0; u < objetoMatematico.length; u++) {
+            if (objetoMatematico[u]['titulo'] === newName) {
                 newName += '.';
                 unique = false;
                 break;
             }
-            if (reduxInfo[u]['subtitulo'] === newSubname) {
+            if (objetoMatematico[u]['subtitulo'] === newSubname) {
                 newSubname += '.';
                 unique = false;
                 break;
@@ -565,37 +608,58 @@ export function ApuMicro(){
         dispatch(updateInfo(inf))
     }
 
-    async function data() {
-        setModalIsOpen(true)
-        setErrorMessage('guardando informacion, por favor espere....')
-        const data = { 
-            correo: localStorage.getItem('email'), 
-            info: reduxInfo, 
-            sumaObjeto: sumaObjetos(), 
-            nombre: nombreObjeto,
-            compararNombre: comparacionNombreObjeto
-        };
-
-        try {
-            
-            const response = await fetch('/api/createDocument', {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data), 
-            });
-
-            if (!response.ok) {
-            const message = `An error has occurred: ${response.status}`;
-            throw new Error(message);
+    async function guardarCambios(acc){
+        if(objetoMatematicoEnUso !== ''){
+            setModalIsOpen(true)
+            setErrorMessage('guardando información....')
+            let newObj = {...objetosMatematicos}
+            newObj[objetoMatematicoEnUso] = objetoMatematico
+            let objKeys = Object.keys(newObj)
+            console.log(newObj);
+            setObjetoMatematicoEnUso(objetoMatematicoEnUso)
+            dispatch(updateObjetosMatematicos(newObj))
+            setNombresObjetosMatematicos(objKeys)
+            dispatch(updateInfo(newObj[objetoMatematicoEnUso]))
+            setComparacionNombreObjeto(objetoMatematicoEnUso)
+            try {
+                await savePrueba(newObj)
+                setModalIsOpen(false)
+                return 'funciono'
+            } catch (error) {
+                setErrorMessage('algo falló....')
+                console.error(error);
+                return 'fallo'
             }
+        }
+    }
 
-            const result = await response.json(); 
-            llamarNombresObjetosMatematicos()
-            setErrorMessage('cambios guardados exitosamente')
-        } catch (error) {
-            console.error('Error guardando el documento:', error);
+    function cambiarValorEnArreglo(arreglo, valorViejo, valorNuevo) {
+        let newArr = []
+        for (let u = 0; u < arreglo.length; u++) {
+            if(arreglo[u] !== valorViejo){
+                newArr.push(arreglo[u])
+            } else {
+                newArr.push(valorNuevo)
+            }
+        }
+        console.log( newArr);
+        return newArr
+    }
+    
+
+    async function data() {
+        console.log(`objetoMatematicoEnUso: ${objetoMatematicoEnUso}, comparacionNombreObjeto: ${comparacionNombreObjeto}`);
+        let newArr = [...nombresObjetosMatematicos]
+        if(objetoMatematicoEnUso !== comparacionNombreObjeto){
+            dispatch(updateObjetosMatematicos(cambiarNombreLlave(objetosMatematicos, objetoMatematicoEnUso, comparacionNombreObjeto)))
+            setObjetoMatematicoEnUso(comparacionNombreObjeto)
+            setComparacionNombreObjeto(comparacionNombreObjeto)
+            setNombresObjetosMatematicos(cambiarValorEnArreglo(newArr, objetoMatematicoEnUso, comparacionNombreObjeto))
+        } else {
+            dispatch(updateObjetosMatematicos(newArr[objetoMatematicoEnUso]))
+            setObjetoMatematicoEnUso(comparacionNombreObjeto)
+            setComparacionNombreObjeto(objetoMatematicoEnUso)
+            setNombresObjetosMatematicos(objetoMatematicoEnUso)
         }
     }
 
@@ -610,8 +674,18 @@ export function ApuMicro(){
     async function handleSelectChangeNombresObjetosMatematicos(event){
         setCoorPaso({"newCoor":0,"key":"valor unitario"})
         setObjetoMatematicoEnUso(event.target.value);
-        dispatch(updateInfo([]))
-        fetchInfo(event.target.value)
+        setComparacionNombreObjeto(event.target.value)
+        for (let llave in objetosMatematicos) {
+            console.log(llave);
+            llave === event.target.value ? console.log('si') : null
+        }
+        console.log(event.target.value);
+        console.log(objetosMatematicos);
+        let paso = {...objetosMatematicos}
+        paso = paso[event.target.value]
+        console.log(paso);
+        
+        dispatch(updateInfo(paso))
     }
 
     function crearNuevoObjetoMatematico(){
@@ -633,46 +707,28 @@ export function ApuMicro(){
         if(posible === false){
             setModalIsOpen(true)
             setErrorMessage('creando nuevo objeto matematico, por favor espere....')
-            fetch('/api/crearNuevoObjetoMatematicoEnDb', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                correo: localStorage.getItem('email'), 
-                nombreNuevoObjetoMatematico: nombreNuevoObjetoMatematico 
-            }),
-            })
-            .then(response => response.json())
-            .then(data => {setErrorMessage('creado nuevo objeto matematico exitosamente'); llamarNombresObjetosMatematicos()})
-            .catch((error) => {
-            console.error('Error:', error);
-            });    
-        }
-    }
-
-    async function llamarNombresObjetosMatematicos() {
-        const data = { correo: localStorage.getItem('email') };
-
-        try {
-            const response = await fetch('/api/getKeys', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data), 
-            });
-
-            if (!response.ok) {
-            const message = `An error has occurred: ${response.status}`;
-            throw new Error(message);
-            }
-
-            const keys = await response.json();
-
-            setNombresObjetosMatematicos(keys)
-        } catch (error) {
-            console.error('Error obteniendo las claves:', error);
+            console.log('siisisis');
+            let newContent = [{
+                'titulo': nombreNuevoObjetoMatematico,
+                'subtitulo': 'materiales_',
+                'descripcion': 'la madre2',
+                'UM': 'metross',
+                'rendimiento': 16,
+                'precio unitario': 850,
+                'otro2': 20,
+                'otro2 unitario': 21,
+                'valor unitario': [['rendimiento', '*', 'precio unitario']],
+                'valor dinamico': 1
+            }]
+            let newDicc = {...objetosMatematicos}
+            console.log(nombreNuevoObjetoMatematico);
+            newDicc[nombreNuevoObjetoMatematico] = newContent
+            dispatch(updateObjetosMatematicos(newDicc))
+            setObjetoMatematicoEnUso(nombreNuevoObjetoMatematico)
+            dispatch(updateInfo(newDicc[nombreNuevoObjetoMatematico]))
+            setActivarGuardar(activarGuardar+1)
+        } else {
+            setErrorMessage('ya existe')
         }
     }
 
@@ -681,7 +737,6 @@ export function ApuMicro(){
     setEditNombreObjetoMatematico(true)
     }
 
-    
     return (
         <html>
             <head>
@@ -702,19 +757,19 @@ export function ApuMicro(){
                     <h2 style={{paddingTop: '15px'}}>Total operación: $ {sumaObjetos()}</h2>
                     <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
                     <img onClick={()=> crearNuevoObjeto()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjeto_o9hw7f.png" title="Crea un nuevo objeto en el actual lugar" alt="Descripción de la imagen" />
-                    <img onClick={()=> data()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/save_pmx5wo.png" title="Guardar en memoria" alt="Descripción de la imagen" />
+                    <img onClick={()=> setActivarGuardar(activarGuardar + 1)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/save_pmx5wo.png" title="Guardar en memoria" alt="Descripción de la imagen" />
                     <img onClick={()=> editarNombreObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/edit_cdqnpt.png" title="Edita el nombre del objeto matematico actual" alt="Descripción de la imagen" />
-                    <select style={{width: 'fit-content', height: 'fit-content'}} className="select-moderno" value={objetoMatematicoEnUso === comparacionNombreObjeto ? objetoMatematicoEnUso : comparacionNombreObjeto} onChange={(event) => handleSelectChangeNombresObjetosMatematicos(event)} title="Filtro de objetos matematicos">
-                    {nombresObjetosMatematicos.map((option) => (
-                        <option key={option} value={option}>
-                        {option}
-                        </option>
-                    ))}
+                    <select style={{width: 'fit-content', height: 'fit-content'}} className="select-moderno" value={objetoMatematicoEnUso} onChange={(event) => handleSelectChangeNombresObjetosMatematicos(event)} title="Filtro de objetos matematicos">
+                        {nombresObjetosMatematicos.map((option) => (                                         /**value={objetoMatematicoEnUso === comparacionNombreObjeto ? objetoMatematicoEnUso : comparacionNombreObjeto} */
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
                     </select>  
                 </div>
                 
                 <div style={{height: '85vh'}} className='scroll imagenFondo'>
-                {reduxInfo.map((item, index) => {
+                {objetoMatematico !== undefined ? objetoMatematico.map((item, index) => {
                     if (item && typeof item === 'object') {
                     item['acumulado'] = 0; // Reset the array for each item
                     }
@@ -772,7 +827,8 @@ export function ApuMicro(){
                         </div>
                     </div>
                     );
-                })}
+                }) : null}
+                
                 </div>  
                 <Modal
                 //appElement={document.getElementById('RootLayout')}
