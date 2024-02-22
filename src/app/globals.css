@@ -169,13 +169,19 @@ body {
 
 .scroll {
   overflow-x: auto;
-  scrollbar-width: none; /* Para Firefox */
-  -ms-overflow-style: none;  /* Para Internet Explorer y Edge */
+  scrollbar-width: thin; /* Para Firefox */
+  -ms-overflow-style: scrollbar;  /* Para Internet Explorer y Edge */
 }
 
 .scroll::-webkit-scrollbar { 
-  display: none;  /* Para Chrome, Safari y Opera */
+  width: 12px;  /* Para Chrome, Safari y Opera */
 }
+
+.scroll::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
+
 
 .resaltar {
   cursor: pointer;

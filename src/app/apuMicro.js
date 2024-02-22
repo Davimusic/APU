@@ -545,14 +545,18 @@ export function ApuMicro(){
             let newKeyName = baseKeyName;
             let i = 0;
             while (Object.keys(inf[coorPaso.newCoor]).includes(newKeyName)) {
-            newKeyName = baseKeyName + '.' + i;
-            i++;
+                newKeyName = baseKeyName + '.' + i;
+                i++;
             }
             inf[coorPaso.newCoor][newKeyName] = acc === 'numero' ? 0 : 'texto';
+            if(acc === 'numero'){
+                inf[coorPaso.newCoor]['cantidad'+newKeyName] = 0;
+            }
             dispatch(updateInfo(inf))
             setModalIsOpen(false);
         }
     }
+    
 
     function destruirObjeto(acc){
         if (objetoMatematico.length <= 1) {
