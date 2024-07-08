@@ -78,7 +78,10 @@ H2{
 
 .imagenFondo::after {
   content: "";
+  /*
   background: url('https://res.cloudinary.com/dplncudbq/image/upload/v1656097007/mias/h2_jy6hgj.jpg');
+  */
+  background-color: #163338;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
@@ -289,19 +292,19 @@ h1, h2, h3, h4, h5{
 }
 
 .color1{
-  background: #00070c;
+  background: #17202A;
 }
 
 .color2{
-  background: #120461;
+  background: #154360 ;
 }
 
 .color3{
-  background: #404041;
+  background: #1E8449;
 }
 
 .color4{
-  background: #163338;
+  background: #578A81;
 }
 
 .color5{

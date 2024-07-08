@@ -16,7 +16,9 @@ export function ApuMicro(){
     const [objetoMatematicoEnUso, setObjetoMatematicoEnUso] = useState('');
     const [nombresObjetosMatematicos, setNombresObjetosMatematicos] = useState(['casa', 'perro']);
     const [nombreNuevoObjetoMatematico, setNombreNuevoObjetoMatematico] = useState('');
+    const [materiales, setMateriales] = useState(['ladrilloH10']);
     const [nombreObjeto, setNombreObjeto] = useState('perro');
+    const [escogerMaterial, setEscogerMaterial] = useState(false);
     const [comparacionNombreObjeto, setComparacionNombreObjeto] = useState('newName');
     const [editNombreObjetoMatematico, setEditNombreObjetoMatematico] = useState(false);
 
@@ -535,6 +537,7 @@ export function ApuMicro(){
     }
 
     function agregarNuevoLlaveValor(acc){
+        alert('poner los apu de ladrillo, friso, tuvos, cables de luz, llaves')
         if(acc !== 'numero' && acc !== 'texto'){
             const newCoor = objetoMatematico.findIndex(item => item['titulo'] === acc);
             setCoorPaso({newCoor, acc: 'nueva llave valor'});
@@ -576,7 +579,7 @@ export function ApuMicro(){
     }
 
     function crearNuevoObjeto(){
-        let newDicc = {
+        /*let newDicc = {
                         'titulo': '',
                         'subtitulo': 'materiales_',
                         'descripcion': 'la madre2',
@@ -605,11 +608,29 @@ export function ApuMicro(){
                 break;
             }
             }
-        }
+        }*/
+
+        /*/
         newDicc['titulo'] = newName
         newDicc['subtitulo'] = newSubname
-        inf.unshift(newDicc) 
+        inf.unshift(newDicc) en acualizacion /*/
+        setEscogerMaterial(true)
+        setModalIsOpen(true); 
+        
+        //ladrillo['titulo'] = 'Ladrillo h10'
+        //ladrillo['subtitulo'] = 'ladrillo'
+        //inf.unshift(ladrillo) 
+        //dispatch(updateInfo(inf))
+    }
+
+    function insertarNuevoObjeto(titulo){
+        let newDicc = objetosMateriales().find(item => item.titulo === titulo);
+        let inf = [...objetoMatematico] 
+        inf.unshift(newDicc)
         dispatch(updateInfo(inf))
+        setEscogerMaterial(false)
+        setModalIsOpen(false); 
+        cerrarVariablesModal()
     }
 
     async function guardarCambios(acc){
@@ -741,6 +762,199 @@ export function ApuMicro(){
     setEditNombreObjetoMatematico(true)
     }
 
+    function objetosMateriales(){
+        let array = [
+                    {
+                        'titulo': 'Muro ladrillo h10',
+                        'subtitulo': 'pared',
+                        'descripcion': 'Ladrillo estándar para construcción',
+                        'UM': 'metro cuadrado', 
+                        'cantidad necesaria': 15.15, 
+                        'porcentaje necesario': 100,
+                        'desperdicio': 10,
+                        'precio unitario': 850,
+                        'mano de obra': 8000,
+                        'cantidad kilos cemento': 1.1,
+                        'precio kilo cemento': 850,
+                        'cantidad kilos arena': 8.6,
+                        'precio kilo arena': 850,
+                        'herramienta menor': 1000, 
+                        'valor unitario': [['cantidad necesaria', '/', 'porcentaje necesario'], ['acumulado', '*', ['desperdicio', '+', 'porcentaje necesario']], ['acumulado', '*', 'precio unitario'], ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']], ['acumulado', '+', [['cantidad kilos cemento', '*', 'precio kilo cemento'], '+', ['cantidad kilos arena', '*', 'precio kilo arena']]]], 
+                        'valor dinamico': 1 
+                    },
+                    {
+                        'titulo': 'Muro ladrillo h5',
+                        'subtitulo': 'pared',
+                        'descripcion': 'Ladrillo estándar para construcción',
+                        'UM': 'metro cuadrado', 
+                        'cantidad necesaria': 15.15, 
+                        'porcentaje necesario': 100,
+                        'desperdicio': 10,
+                        'precio unitario': 650,
+                        'mano de obra': 8000,
+                        'cantidad kilos cemento': 1.1,
+                        'precio kilo cemento': 850,
+                        'cantidad kilos arena': 8.6,
+                        'precio kilo arena': 850,
+                        'herramienta menor': 1000, 
+                        'valor unitario': [['cantidad necesaria', '/', 'porcentaje necesario'], ['acumulado', '*', ['desperdicio', '+', 'porcentaje necesario']], ['acumulado', '*', 'precio unitario'], ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']], ['acumulado', '+', [['cantidad kilos cemento', '*', 'precio kilo cemento'], '+', ['cantidad kilos arena', '*', 'precio kilo arena']]]], 
+                        'valor dinamico': 1 
+                    },
+                    {
+                        'titulo': 'Friso de pared',
+                        'subtitulo': 'Revestimiento de pared',
+                        'descripcion': 'Revestimiento decorativo para paredes interiores o exteriores',
+                        'UM': 'metro cuadrado',
+                        'cantidad necesaria': 0.5,
+                        'porcentaje necesario': 100,
+                        'desperdicio': 10,
+                        'precio unitario': 950,
+                        'mano de obra': 9000,
+                        'cantidad kilos cemento': 1.5,
+                        'precio kilo cemento': 950,
+                        'cantidad kilos arena': 12.5,
+                        'precio kilo arena': 950,
+                        'herramienta menor': 1200,
+                        'valor unitario': [
+                            ['cantidad necesaria', '/', 'porcentaje necesario'],
+                            ['acumulado', '*', ['desperdicio', '+', 'porcentaje necesario']],
+                            ['acumulado', '*', 'precio unitario'],
+                            ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']],
+                            ['acumulado', '+', [['cantidad kilos cemento', '*', 'precio kilo cemento'], '+', ['cantidad kilos arena', '*', 'precio kilo arena']]]
+                        ],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Escapote',
+                        'subtitulo': 'hecho a maquina',
+                        'descripcion': 'Proceso de limpieza y despeje del terreno antes de la cimentación',
+                        'UM': 'hora',
+                        'mano de obra': 50000,
+                        'herramienta menor': 50000,
+                        'valor unitario': [['mano de obra', '+', 'herramienta menor']],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Zapatas',
+                        'subtitulo': 'Ejecución manual',
+                        'descripcion': 'El personal coloca los distintos elementos que aseguran las coordenadas para empezar las respectivas excabaciones',
+                        'UM': 'metro cúbico',
+                        'mano de obra': 30000,
+                        'precio 6 metros varilla tipo 3/4': 40000,
+                        'varillas tipo 3/4 a usar': 100,
+                        'herramienta menor': 10000,
+                        'cantidad bultos cemento': 40,
+                        'precio bultos cemento': 33000,
+                        'cantidad metros cúbicos arena amarilla': 10,
+                        'precio metro cúbico arena amarilla': 50000,
+                        'cantidad metros cúbicos arena negra': 10,
+                        'precio metro cúbicos arena negra': 65000,
+                        'cantidad metros cúbicos piedra': 8,
+                        'precio metro cúbicos piedra': 45000,
+                        'valor unitario': [
+                                            ['precio 6 metros varilla tipo 3/4', '*', 'varillas tipo 3/4 a usar'],
+                                            ['acumulado', '+', ['cantidad bultos cemento', '*', 'precio bultos cemento']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena amarilla', '*', 'precio metro cúbico arena amarilla']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena negra', '*', 'precio metro cúbicos arena negra']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos piedra', '*', 'precio metro cúbicos piedra']],
+                                            ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']],
+                                        ],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Vigas',
+                        'subtitulo': 'vigas',
+                        'descripcion': 'Tanto de cimentacion como de losas',
+                        'UM': 'metro cúbico',
+                        'mano de obra': 30000,
+                        'precio 6 metros varilla tipo 3/4': 40000,
+                        'varillas tipo 3/4 a usar': 100,
+                        'herramienta menor': 10000,
+                        'cantidad bultos cemento': 40,
+                        'precio bultos cemento': 33000,
+                        'cantidad metros cúbicos arena amarilla': 10,
+                        'precio metro cúbico arena amarilla': 50000,
+                        'cantidad metros cúbicos arena negra': 10,
+                        'precio metro cúbicos arena negra': 65000,
+                        'cantidad metros cúbicos piedra': 8,
+                        'precio metro cúbicos piedra': 45000,
+                        'valor unitario': [
+                                            ['precio 6 metros varilla tipo 3/4', '*', 'varillas tipo 3/4 a usar'],
+                                            ['acumulado', '+', ['cantidad bultos cemento', '*', 'precio bultos cemento']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena amarilla', '*', 'precio metro cúbico arena amarilla']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena negra', '*', 'precio metro cúbicos arena negra']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos piedra', '*', 'precio metro cúbicos piedra']],
+                                            ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']],
+                                        ],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Columna',
+                        'subtitulo': 'columna',
+                        'descripcion': 'n/a',
+                        'UM': 'metro cúbico',
+                        'mano de obra': 30000,
+                        'precio 6 metros varilla tipo 3/4': 40000,
+                        'varillas tipo 3/4 a usar': 100,
+                        'herramienta menor': 10000,
+                        'cantidad bultos cemento': 40,
+                        'precio bultos cemento': 33000,
+                        'cantidad metros cúbicos arena amarilla': 10,
+                        'precio metro cúbico arena amarilla': 50000,
+                        'cantidad metros cúbicos arena negra': 10,
+                        'precio metro cúbicos arena negra': 65000,
+                        'cantidad metros cúbicos piedra': 8,
+                        'precio metro cúbicos piedra': 45000,
+                        'valor unitario': [
+                                            ['precio 6 metros varilla tipo 3/4', '*', 'varillas tipo 3/4 a usar'],
+                                            ['acumulado', '+', ['cantidad bultos cemento', '*', 'precio bultos cemento']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena amarilla', '*', 'precio metro cúbico arena amarilla']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos arena negra', '*', 'precio metro cúbicos arena negra']],
+                                            ['acumulado', '+', ['cantidad metros cúbicos piedra', '*', 'precio metro cúbicos piedra']],
+                                            ['acumulado', '+', ['mano de obra', '+', 'herramienta menor']],
+                                        ],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Tuberia de aguas residuales',
+                        'subtitulo': 'tuberías',
+                        'descripcion': 'Pensado para los que van de salida',
+                        'UM': 'metro lineal',
+                        'mano de obra': 30000,
+                        'herramienta menor': 10000,
+                        'precio metro lineal tuvo 3" tipo pesado': 20000,
+                        'proyeccion costo accesorios': 10000,
+                        'valor unitario': [
+                                            ['mano de obra', '+', 'herramienta menor'],
+                                            ['acumulado', '+', 'precio metro lineal tuvo 3" tipo pesado'],
+                                            ['acumulado', '+', 'proyeccion costo accesorios'],
+                                        ],
+                        'valor dinamico': 1
+                    },
+                    {
+                        'titulo': 'Tubería de alimentación',
+                        'subtitulo': 'tuberías',
+                        'descripcion': 'Para conducir el agua potable que viene de la calle',
+                        'UM': 'metro lineal',
+                        'mano de obra': 8000,
+                        'herramienta menor': 5000,
+                        'precio metro lineal tuvo 1/4" tipo pesado': 10000,
+                        'proyeccion costo accesorios': 5000,
+                        'valor unitario': [
+                                            ['mano de obra', '+', 'herramienta menor'],
+                                            ['acumulado', '+', 'precio metro lineal tuvo 1/4" tipo pesado'],
+                                            ['acumulado', '+', 'proyeccion costo accesorios'],
+                                        ],
+                        'valor dinamico': 1
+                    }
+                    ];
+        return array
+    }
+
+    function cerrarVariablesModal(){
+        setModalIsOpen(false); setErrorMessage(null); setEditNombreObjetoMatematico(false); setNombreNuevoObjetoMatematico('')
+    }
+
     return (
         <html>
             <head>
@@ -774,6 +988,7 @@ export function ApuMicro(){
                 
                 <div style={{height: '85vh'}} className='scroll imagenFondo'>
                 {objetoMatematico !== undefined ? objetoMatematico.map((item, index) => {
+                    {console.log(objetoMatematico);}
                     if (item && typeof item === 'object') {
                     item['acumulado'] = 0; // Reset the array for each item
                     }
@@ -837,7 +1052,7 @@ export function ApuMicro(){
                 <Modal
                 //appElement={document.getElementById('RootLayout')}
                 isOpen={modalIsOpen}
-                onRequestClose={() => {setModalIsOpen(false); setErrorMessage(null); setEditNombreObjetoMatematico(false); setNombreNuevoObjetoMatematico('')}}
+                onRequestClose={() => {cerrarVariablesModal()}}
                 style={{
                     content: {
                     background: 'black',
@@ -867,7 +1082,7 @@ export function ApuMicro(){
                                 </div> 
                                 :
                                 <>
-                                    {!modalContent.hasOwnProperty('item') && (
+                                    {!modalContent.hasOwnProperty('item') && escogerMaterial === false && (
                                     <div style={{margin: '20px', display: 'flex'}}>
                                         {nombreNuevoObjetoMatematico === '' ?
                                         <button onClick={() => setUsar(usar+1)} className="botones">Actualizar</button> :
@@ -879,6 +1094,17 @@ export function ApuMicro(){
                                             null
                                         } 
                                     </div> 
+                                    )}
+                                    {escogerMaterial === true && (
+
+
+                                        <div className="centrar" style={{display:'block', width: '50%'}}>
+                                        {objetosMateriales().map(item => <button onClick={() => insertarNuevoObjeto(item.titulo)} className="botones">{item.titulo}</button>)}
+                                        
+                                        </div>
+
+
+
                                     )}
                                     {coorPaso.acc === 'nueva llave valor' && (
                                         <div className="centrar" style={{display:'flex', width: '50%'}}>
@@ -911,7 +1137,7 @@ export function ApuMicro(){
                                                 </div>
                                             ) : 
                                                 coorPaso.acc !== 'nueva llave valor' && (
-                                                    <>hola mundo
+                                                    <>
                                                         {Object.keys(modalContent).map(renderLabel)}
                                                     </>
                                                 )
@@ -924,7 +1150,7 @@ export function ApuMicro(){
                         }
                     </div>
                     </div>
-                    <button onClick={() => {setModalIsOpen(false); setErrorMessage(null); setEditNombreObjetoMatematico(false); setNombreNuevoObjetoMatematico('')}} className="botones">Cerrar modal</button>
+                    <button onClick={() => {cerrarVariablesModal()}} className="botones">Cerrar modal</button>
                 </>
                 </Modal>
             </body>
