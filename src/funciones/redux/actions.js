@@ -18,3 +18,24 @@ export const updateObjetosMatematicos = (value) => {
         payload: value,
     };
 };
+
+export const updateCorreo = (value) => {
+    return {
+        type: 'UPDATE_CORREO',
+        payload: value,
+    };
+};
+
+export const updateAccion = (value) => {
+    return {
+        type: 'UPDATE_ACCION',
+        payload: value,
+    };
+};
+
+export const updateNombreObjetoMatematicoEnUso = (value) => {
+    return {
+        type: 'UPDATE_NOMBRE_OBJETO_MATEMATICO_EN_USO',
+        payload: value,
+    };
+};

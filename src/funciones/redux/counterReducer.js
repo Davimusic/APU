@@ -1,7 +1,10 @@
 const initialState = {
   mirar: 'hola mundo de la madre XD',
   objetoMatematico: [],
-  objetosMatematicos: []
+  objetosMatematicos: [],
+  correo: '',
+  accion: '',//para estar entre login, un apu en especifico y los proyectos creados
+  nombreObjetoMatematicoEnUso: '',
 };
 
 const counterReducer = (state = initialState, action) => {
@@ -21,6 +24,21 @@ const counterReducer = (state = initialState, action) => {
           ...state,
           objetosMatematicos: action.payload, 
         };      
+    case 'UPDATE_CORREO':
+        return {
+          ...state,
+          correo: action.payload, 
+        };       
+    case 'UPDATE_ACCION':
+        return {
+          ...state,
+          accion: action.payload, 
+        };  
+    case 'UPDATE_NOMBRE_OBJETO_MATEMATICO_EN_USO':
+        return {
+          ...state,
+          nombreObjetoMatematicoEnUso: action.payload, 
+        };        
     default:
       return state;
   }
