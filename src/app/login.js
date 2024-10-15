@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../estilos/login.css';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
@@ -16,20 +16,77 @@ export default function Login() {
     const correo = useSelector(state => state.correo)
     const dispatch = useDispatch();
 
+    const fetchData = async (correo, contrasena) => {
+        try {
+            //const correo = 'davipianof@gmail.com'; // Reemplaza con el correo del usuario
+            //const contrasena = 'aaaa'; // Reemplaza con la contraseña del usuario
+            const res = await verificarCredenciales(correo, contrasena);
+            if (res) {
+                console.log(res);
+                if(res['loginState']){
+                    dispatch(updateCorreo(email))
+                    dispatch(updateAccion('mostrarProyectos'))
+                }
+            }
+        } catch (error) {
+            console.error('Error durante la verificación:', error);
+        }
+    };
+
+    async function verificarCredenciales(correo, contrasena) {
+        try {
+            const response = await fetch('/api/validateAcces', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ correo, contrasena }),
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('Contraseña incorrecta');
+                    return { error: 'Contraseña incorrecta' };
+                }
+                if (response.status === 404) {
+                    console.error('Correo no encontrado');
+                    return { error: 'Correo no encontrado' };
+                }
+                const message = `An error has occurred: ${response.status}`;
+                throw new Error(message);
+            }
+
+            const result = await response.json();
+            console.log(result);
+
+            if (result.success) {
+                return result.keys;
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error al verificar las credenciales:', error);
+        }
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if(password === password2){
-            console.log({ email, password });
-            dispatch(updateCorreo(email))
-            dispatch(updateAccion('mostrarProyectos'))
+        if(showPassword2 === true){
+            if(password === password2){
+                console.log({ email, password });
+                //dispatch(updateCorreo(email))
+                //dispatch(updateAccion('mostrarProyectos'))
+            } else {
+                alert('contraseñas incorrectas, no coinciden')
+            }
         } else {
-            alert('contraseñas incorrectas, no coinciden')
+            fetchData(email, password)
         }
     };
 
     const handleCheckboxChange = (e) => {
         setShowPassword2(e.target.checked)
-        alert(`Checkbox is ${e.target.checked ? 'true' : 'false'}`);
+        //alert(`Checkbox is ${e.target.checked ? 'true' : 'false'}`);
     };
 
     return (
@@ -68,7 +125,7 @@ export default function Login() {
                                 id="password2"
                                 name="password2"
                                 type="password"
-                                required
+                                required 
                                 className="input"
                                 value={password2}
                                 onChange={(e) => setPassword2(e.target.value)}

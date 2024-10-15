@@ -3,7 +3,7 @@ const initialState = {
   objetoMatematico: [],
   objetosMatematicos: [],
   correo: '',
-  accion: '',//para estar entre login, un apu en especifico y los proyectos creados
+  accion: '',//contenidoFinal, 'mostrarProyectos',//para estar entre login, un apu en especifico y los proyectos creados
   nombreObjetoMatematicoEnUso: '',
 };
 

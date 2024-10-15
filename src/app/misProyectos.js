@@ -3,10 +3,11 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';;
 import '../estilos/misProyectos.css';
-import { updateNombreObjetoMatematicoEnUso } from "@/funciones/redux/actions";
+import { updateNombreObjetoMatematicoEnUso, updateAccion } from "@/funciones/redux/actions";
 
 
-export default function MisProyectos() {
+
+export default function MisProyectos({setObjetoMatematicoEnUso}) {
     const [nombresProyectos, setNombresProyectos] = useState([]);
 
     const objetosMatematicos = useSelector(state => state.objetosMatematicos);
@@ -24,6 +25,8 @@ export default function MisProyectos() {
 
     function ver(value){
         dispatch(updateNombreObjetoMatematicoEnUso(value))
+        dispatch(updateAccion('contenidoFinal'))
+        setObjetoMatematicoEnUso(value)
     }
 
     function borrar(value){

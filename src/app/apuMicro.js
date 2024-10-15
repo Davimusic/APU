@@ -46,6 +46,10 @@ export function ApuMicro(){
     }, [nombresObjetosMatematicos, objetoMatematicoEnUso]);
 
     useEffect(() => {
+        console.log(accion);
+    }, [accion]);
+
+    useEffect(() => {
         const fetchData = async () => {
             localStorage.setItem('email', 'davipianof@gmail.com')
             const result = await llamarTodoObjetoMatematico();
@@ -82,6 +86,9 @@ export function ApuMicro(){
             } catch (error) {
                 console.error('Error al guardar el objeto:', error);
             }
+
+            
+            
         };
     
         fetchData();
@@ -94,7 +101,6 @@ export function ApuMicro(){
         }
         return obj;
     }
-    
     
     async function savePrueba(newObj) {
         const data = { 
@@ -139,6 +145,10 @@ export function ApuMicro(){
             });
         }
     }, [activarGuardar]);
+
+    useEffect(() => {
+        handleSelectChangeNombresObjetosMatematicos(objetoMatematicoEnUso)
+    }, [objetoMatematicoEnUso]);
 
     function calculation(item, arr) {
         //console.log(arr);
@@ -699,17 +709,19 @@ export function ApuMicro(){
     }
 
     async function handleSelectChangeNombresObjetosMatematicos(event){
+        console.log(event);
+        
         setCoorPaso({"newCoor":0,"key":"valor unitario"})
-        setObjetoMatematicoEnUso(event.target.value);
-        setComparacionNombreObjeto(event.target.value)
+        setObjetoMatematicoEnUso(event);
+        setComparacionNombreObjeto(event)
         for (let llave in objetosMatematicos) {
             console.log(llave);
-            llave === event.target.value ? console.log('si') : null
+            llave === event ? console.log('si') : null
         }
-        console.log(event.target.value);
+        console.log(event);
         console.log(objetosMatematicos);
         let paso = {...objetosMatematicos}
-        paso = paso[event.target.value]
+        paso = paso[event]
         console.log(paso);
         
         dispatch(updateInfo(paso))
@@ -970,94 +982,91 @@ export function ApuMicro(){
                 type="image/x-icon">
                 </link>
             </head>
-            <body>
-                {accion === '' ? <Login/> :
-                    accion === 'mostrarProyectos' ? <MisProyectos/> : 
-                    <>
-                        <Menu/>
-                        <div className="centrar scroll" style={{display: 'flex', flexWrap: 'wrap', height: 'fit-content', padding: '20px', borderBottom: '1px solid white', backgroundColor: '#00000071'}}>                    
-                            <h2 style={{paddingTop: '15px'}}>Total operación: $ {sumaObjetos()}</h2>
-                            <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
-                            <img onClick={()=> crearNuevoObjeto()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjeto_o9hw7f.png" title="Crea un nuevo objeto en el actual lugar" alt="Descripción de la imagen" />
-                            <img onClick={()=> setActivarGuardar(activarGuardar + 1)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/save_pmx5wo.png" title="Guardar en memoria" alt="Descripción de la imagen" />
-                            <img onClick={()=> editarNombreObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/edit_cdqnpt.png" title="Edita el nombre del objeto matematico actual" alt="Descripción de la imagen" />
-                            <select style={{width: 'fit-content', height: 'fit-content'}} className="select-moderno" value={objetoMatematicoEnUso} onChange={(event) => handleSelectChangeNombresObjetosMatematicos(event)} title="Filtro de objetos matematicos">
-                                {nombresObjetosMatematicos.map((option) => (                                         /**value={objetoMatematicoEnUso === comparacionNombreObjeto ? objetoMatematicoEnUso : comparacionNombreObjeto} */
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>  
-                        </div>
-                    </>
-                }
-                <div style={{height: '85vh'}} className='scroll imagenFondo'>
-                    {accion === '' || accion === 'mostrarProyectos' ? 
-                            
-                            null : 
-                            
-                            objetoMatematico !== undefined ? objetoMatematico.map((item, index) => {
-                                {console.log(objetoMatematico);}
-                                if (item && typeof item === 'object') {
-                                item['acumulado'] = 0; // Reset the array for each item
+            <body className='imagenFondo'>
+                {accion === '' ? <Login/> : null}
+                {accion === 'mostrarProyectos' ? <MisProyectos setObjetoMatematicoEnUso={setObjetoMatematicoEnUso}/> : null}
+                {accion === 'contenidoFinal' ? (
+                <div className="" style={{ height: '100vh', width: '100%'}}>
+                    <Menu/>
+                    <div className="centrar" style={{display: 'flex', flexWrap: 'wrap', height: 'fit-content', padding: '20px', borderBottom: '1px solid white', backgroundColor: '#00000071'}}>                    
+                                            <h2 style={{paddingTop: '15px'}}>Total operación: $ {sumaObjetos()}</h2>
+                                            <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
+                                            <img onClick={()=> crearNuevoObjeto()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjeto_o9hw7f.png" title="Crea un nuevo objeto en el actual lugar" alt="Descripción de la imagen" />
+                                            <img onClick={()=> setActivarGuardar(activarGuardar + 1)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/save_pmx5wo.png" title="Guardar en memoria" alt="Descripción de la imagen" />
+                                            <img onClick={()=> editarNombreObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/edit_cdqnpt.png" title="Edita el nombre del objeto matematico actual" alt="Descripción de la imagen" />
+                                            {/*<select style={{width: 'fit-content', height: 'fit-content'}} className="select-moderno" value={objetoMatematicoEnUso} onChange={(event) => handleSelectChangeNombresObjetosMatematicos(event)} title="Filtro de objetos matematicos">
+                                                {nombresObjetosMatematicos.map((option) => (                                         
+                                                    <option key={option} value={option}>
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>*/}                                              
+                    </div> 
+                    <div className="scroll" style={{ height: '80vh' }}>                                      
+                    {objetoMatematico !== undefined ? (
+                    objetoMatematico.map((item, index) => {
+                        if (item && typeof item === 'object') {
+                        item['acumulado'] = 0; // Reset the array for each item
+                        }
+                        return (
+                        <div key={index} style={{ width: '100%' }} className="scroll">
+                            <div className='bordes' style={{ width: '100%', marginBottom: '20px', padding: '30px', borderRadius: '0.7em' }} key={index}>
+                            <div style={{ padding: '5px' }}>
+                                <img onClick={() => agregarNuevoLlaveValor(item.titulo)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" alt="Descripción de la imagen" title="Agregar contenido" />
+                                <img onClick={() => destruirObjeto(item.titulo)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" alt="Descripción de la imagen" title="Borrar contenido" />
+                            </div>
+                            <h1 style={{ padding: '5px' }} className='resaltar color1 centrar borde bordes' onClick={() => handleOnClick('titulo', item.titulo)}>{item.titulo}</h1>
+                            <h2 style={{ padding: '5px' }} className='resaltar color2 centrar borde bordes' onClick={() => handleOnClick('subtitulo', item.subtitulo)}>{item.subtitulo}</h2>
+                            <div style={{ display: 'flex' }} className="scroll">
+                                {Object.entries(item).map(([key, value]) => {
+                                if (typeof value === 'string' && key !== 'titulo' && key !== 'subtitulo') {
+                                    return (
+                                    <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} style={{ display: 'block' }} key={key}>
+                                        <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{ padding: '5px', minWidth: '10vw' }}>{key}</div>
+                                        <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{ padding: '5px', minWidth: '10vw' }}>{value}</div>
+                                    </div>
+                                    )
                                 }
-                                return (
-                                <div key={index} style={{width: '100%'}} className="scroll">
-                                    <div className=' bordes' style={{width: '100%', marginBottom: '20px', padding: '30px', borderRadius: '0.7em'}} key={index}>
-                                    <div style={{padding:'5px'}}>
-                                        <img onClick={()=> agregarNuevoLlaveValor(item.titulo)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706027794/agregarMas_gbbwzo.png" alt="Descripción de la imagen" title="Agregar contenido" />
-                                        <img onClick={()=> destruirObjeto(item.titulo)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/trash_cq9i3d.png" alt="Descripción de la imagen" title="Borrar contenido"/>
+                                })}
+                            </div>
+                            <div style={{ display: 'flex' }} className="scroll">
+                                {Object.entries(item).map(([key, value]) => {
+                                if (typeof value === 'number' && key !== 'acumulado' && key !== 'valor dinamico') {
+                                    return (
+                                    <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} style={{ display: 'block' }} key={key}>
+                                        <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{ padding: '5px', minWidth: '10vw' }}>{key}</div>
+                                        <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{ padding: '5px', minWidth: '10vw' }}>{value}</div>
                                     </div>
-                                    <h1 style={{padding: '5px'}} className='resaltar color1 centrar borde bordes' onClick={() => handleOnClick('titulo', item.titulo)}>{item.titulo}</h1>
-                                    <h2 style={{padding: '5px'}}className='resaltar color2 centrar borde bordes' onClick={() => handleOnClick('subtitulo', item.subtitulo)}>{item.subtitulo}</h2>
-                                    <div style={{display: 'flex'}} className="scroll">
-                                        {Object.entries(item).map(([key, value]) => {
-                                        if (typeof value === 'string' && key !== 'titulo' && key !== 'subtitulo' ) {
-                                            return (
-                                            <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} style={{display: 'block'}} key={key}>
-                                                <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{padding: '5px',  minWidth: '10vw'}}>{key}</div>
-                                                <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{padding: '5px',  minWidth: '10vw'}}>{value}</div>
-                                            </div>
-                                            )
-                                        }
-                                        })}
+                                    )
+                                }
+                                })}
+                            </div>
+                            <div style={{ display: 'flex' }} className="scroll">
+                                {Object.entries(item).map(([key, value]) => {
+                                if (key === 'valor unitario' || key === 'valor dinamico') {
+                                    if (Array.isArray(value)) {
+                                    value = value.reduce((acc, val) => {
+                                        return calculation(item, val);
+                                    }, 0);
+                                    }
+                                    return (
+                                    <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} className="centrar" style={{ display: 'block', width: '50%' }} key={key}>
+                                        <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{ padding: '5px', width: '100%', minWidth: 'fit-content' }}>{key}</div>
+                                        <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{ padding: '5px', width: '100%', minWidth: 'fit-content' }}>{value}</div>
                                     </div>
-                                    <div style={{display: 'flex'}} className="scroll">  
-                                        {Object.entries(item).map(([key, value]) => {
-                                        if (typeof value === 'number' && key !== 'acumulado' && key !== 'valor dinamico') {
-                                            return (
-                                            <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} style={{display: 'block'}} key={key}>
-                                                <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{padding: '5px',  minWidth: '10vw'}}>{key}</div>
-                                                <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{padding: '5px',  minWidth: '10vw'}}>{value}</div>
-                                            </div>
-                                            )
-                                        }
-                                        })}
-                                    </div>
-                                    <div style={{display: 'flex'}} className="scroll">
-                                        {Object.entries(item).map(([key, value]) => {
-                                        if (key === 'valor unitario' || key === 'valor dinamico') {
-                                            if (Array.isArray(value)) {
-                                            value = value.reduce((acc, val) => {
-                                                return calculation(item, val);
-                                            }, 0);
-                                            }
-                                            return (
-                                            <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} className="centrar" style={{display: 'block', width:'50%'}} key={key}>
-                                                <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{padding: '5px', width: '100%', minWidth: 'fit-content'}}>{key}</div>
-                                                <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{padding: '5px', width: '100%', minWidth: 'fit-content'}}>{value}</div>
-                                            </div>
-                                            )
-                                        }
-                                        })}
-                                    </div>
-                                    <h2  style={{padding: '5px'}} className="centrar color3 borde bordes" >Total: $ {totalObjetosHijos(item.titulo)}</h2>
-                                    </div>
-                                </div>
-                                );
-                            }): null
-                    }
-                </div>  
+                                    )
+                                }
+                                })}
+                            </div>
+                            <h2 style={{ padding: '5px' }} className="centrar color3 borde bordes">Total: $ {totalObjetosHijos(item.titulo)}</h2>
+                            </div>
+                        </div>
+                        );
+                    })
+                    ) : null}
+                    </div>
+                </div>
+                ) : null}
                 <Modal
                 //appElement={document.getElementById('RootLayout')}
                 isOpen={modalIsOpen}
