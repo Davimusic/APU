@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import '../estilos/login.css';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import {updateCorreo, updateAccion } from "@/funciones/redux/actions";
+import {updateCorreo, updateAccion, updateMateriales } from "@/funciones/redux/actions";
+import materialesTesteo from './materialesTesteo';
 
 
 export default function Login() {
@@ -15,6 +16,41 @@ export default function Login() {
 
     const correo = useSelector(state => state.correo)
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        //fetchMaterials()
+        dispatch(updateMateriales(materialesTesteo()))
+        console.log(materialesTesteo);
+        
+    }, []);
+
+    const fetchMaterials = async () => {
+        try {
+            const response = await fetch('/api/getMaterials', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            if (!response.ok) {
+                const message = `An error has occurred: ${response.status}`;
+                throw new Error(message);
+            }
+    
+            const materials = await response.json();
+            console.log(materials);
+    
+            if (materials) {
+                // Aquí puedes hacer algo con los materiales recibidos
+                dispatch(updateMateriales(materials[0].materiales))
+                console.log(materials[0].materiales);
+            }
+        } catch (error) {
+            console.error('Error al obtener los materiales:', error);
+        }
+    };
+    
 
     const fetchData = async (correo, contrasena) => {
         try {
@@ -80,7 +116,10 @@ export default function Login() {
                 alert('contraseñas incorrectas, no coinciden')
             }
         } else {
-            fetchData(email, password)
+
+            //fetchData(email, password)
+            dispatch(updateCorreo(email))
+                    dispatch(updateAccion('mostrarProyectos'))
         }
     };
 

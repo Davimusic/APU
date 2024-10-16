@@ -12,6 +12,10 @@ import MisProyectos from "./misProyectos";
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { updateInfo, updateMirar, updateObjetosMatematicos, updateCorreo, updateAccion } from "@/funciones/redux/actions";
+import MaterialFilter from "./MaterialFilter ";
+
+
+import usuarioTesteo from "./usuarioTesteo";
 
 
 export function ApuMicro(){
@@ -39,6 +43,7 @@ export function ApuMicro(){
     const objetoMatematico = useSelector(state => state.objetoMatematico);
     const correo = useSelector(state => state.correo)
     const accion = useSelector(state => state.accion)
+    const materialesRedux = useSelector(state => state.materiales)
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -50,7 +55,7 @@ export function ApuMicro(){
     }, [accion]);
 
     useEffect(() => {
-        const fetchData = async () => {
+        /*const fetchData = async () => {
             localStorage.setItem('email', 'davipianof@gmail.com')
             const result = await llamarTodoObjetoMatematico();
 
@@ -91,7 +96,16 @@ export function ApuMicro(){
             
         };
     
-        fetchData();
+        fetchData();*/
+        let obj = usuarioTesteo()
+        let objKeys = Object.keys(usuarioTesteo())
+        console.log(usuarioTesteo());
+        
+
+        dispatch(updateObjetosMatematicos(obj))
+        setNombresObjetosMatematicos(objKeys)
+        dispatch(updateInfo(obj[objKeys[0]]))//dispatch(updateInfo(obj[objKeys[0]]['objetos']))
+        setObjetoMatematicoEnUso(objKeys[0])
     }, []);
 
     function cambiarNombreLlave(obj, llaveVieja, llaveNueva) {
@@ -180,8 +194,9 @@ export function ApuMicro(){
                 setCoorPaso({newCoor, key})
                 if(key === 'valor unitario'){
                     setSelectValues(objetoMatematico[newCoor][key])
-                    setModalContent({ tittle, subtittle, key, value: objetoMatematico[newCoor][key] });
+                    setModalContent({ tittle, subtittle, key , value: objetoMatematico[newCoor][key] });
                 } else {
+                    let prueba = {'hi': 'hola mundo'}
                     setModalContent({ tittle, subtittle, key, value });
                 }
             } else if(tittle === 'titulo' || tittle === 'subtitulo'){
@@ -197,13 +212,45 @@ export function ApuMicro(){
         setModalIsOpen(true);
     }
 
-    const handleInputChange = (event) => {
+    /*const handleInputChange = (event) => {
+        console.log(event);
+        
         setModalContent({
             ...modalContent,
             [event.target.name]: event.target.value
         });
-    }
+    }*/
 
+        const handleInputChange = (event) => {
+            console.log(event);
+            console.log(event.target);
+            
+            
+            const { name, value } = event.target;
+        
+            if (!name) {
+                console.error('El elemento de entrada no tiene un atributo "name" válido.');
+                return;
+            }
+        
+            setModalContent({
+                ...modalContent,
+                [name]: value
+            });
+        };
+
+        function mirar(d){
+            console.log(d);
+            console.log(d['precio']);
+            
+            
+            setModalContent({
+                ...modalContent,
+                ['value']: d['precio'],
+                ['key']: `${d['material']} de ${d['nombreEmpresa']} con ${d['cantidad']} disponible(s)`
+            });
+        }
+        
     useEffect(() => {
         let newArr = []
         let newDicc = {}
@@ -416,7 +463,6 @@ export function ApuMicro(){
         }
     }
 
-
     function handleSelectChange(path, event) {
         let inf = objetoMatematico
         if (modalContent.hasOwnProperty('item')) {
@@ -458,7 +504,70 @@ export function ApuMicro(){
         } 
     }
 
+    /*const mirar = (precio) => {
+        console.log(precio);
+        setSelectedMaterial(precio);
+        setModalContent({ ...modalContent, [key]: precio });
+    };*/
     const renderLabel = (key) => {
+        
+    
+        
+    
+        const isTitle = ['titulo', 'subtitulo'].includes(coorPaso.tittle) && ['tittle', 'subtittle'].includes(key);
+        const isNotUnitValue = modalContent[key] !== 'valor unitario' && key !== 'tittle' && key !== 'subtittle' && modalContent[key] !== 'valor dinamico';
+    
+        if (isTitle || isNotUnitValue) {
+            const labelName = isTitle ? coorPaso.tittle.charAt(0).toUpperCase() + coorPaso.tittle.slice(1) : key.charAt(0).toUpperCase() + key.slice(1);
+            const inputType = isNaN(modalContent[key]) ? 'text' : 'number';
+            const uniqueId = `input-${Date.now()}`;
+    
+            return (
+                <>
+                    <label key={key}>
+                        {labelName}:
+                        {typeof modalContent[key] === 'object' ? (
+                            <div style={{ height: 'fit-content', width: '100%' }} className="scroll">
+                                {modalContent[key].map((item, index) => renderSelects(item, index, [], true))}
+                            </div>
+                        ) : (
+                            inputType === 'number' ? (
+                                <>
+                                <MaterialFilter
+                                data={materialesRedux}
+                                onSelect={(precio) => mirar(precio)}
+                                />
+                                <input
+                                    id={uniqueId}
+                                    type="number"
+                                    name={key}
+                                    value={modalContent[key] || 0}//selectedMaterial || 
+                                    onChange={handleInputChange}
+                                    className="input-moderno"
+                                />
+                                
+                                </>
+                            ) : (
+                                <input
+                                    id={uniqueId}
+                                    type={inputType}
+                                    name={key}
+                                    value={modalContent[key]}
+                                    onChange={handleInputChange}
+                                    className="input-moderno"
+                                />
+                            )
+                        )}
+                    </label>
+                </>
+            );
+        }
+    };
+    
+    
+    
+
+    /*const renderLabel = (key) => {
 
         const isTitle = ['titulo', 'subtitulo'].includes(coorPaso.tittle) && ['tittle', 'subtittle'].includes(key);
         const isNotUnitValue = modalContent[key] !== 'valor unitario' && key !== 'tittle' && key !== 'subtittle' && modalContent[key] !== 'valor dinamico';
@@ -466,8 +575,9 @@ export function ApuMicro(){
         if (isTitle || isNotUnitValue) {
             const labelName = isTitle ? coorPaso.tittle.charAt(0).toUpperCase() + coorPaso.tittle.slice(1) : key.charAt(0).toUpperCase() + key.slice(1);
             const inputType = isNaN(modalContent[key]) ? 'text' : 'number';
-            
+            const uniqueId = `input-${Date.now()}`
             return (
+            <>
             <label key={key}>
                 {labelName}:
                 {typeof modalContent[key] === 'object' ? (
@@ -476,6 +586,7 @@ export function ApuMicro(){
                 </div>
                 ) : (
                 <input
+                    id={uniqueId}
                     type={inputType}
                     name={key}
                     value={modalContent[key]}
@@ -484,9 +595,10 @@ export function ApuMicro(){
                 />
                 )}
             </label>
+            </>
             );
         }
-    };
+    };*/
 
     function reemplazarNombre(arr, oldValue, newValue) {
         for (let i = 0; i < arr.length; i++) {
@@ -982,7 +1094,7 @@ export function ApuMicro(){
                 type="image/x-icon">
                 </link>
             </head>
-            <body className='imagenFondo'>
+            <body className='imagenFondo' >
                 {accion === '' ? <Login/> : null}
                 {accion === 'mostrarProyectos' ? <MisProyectos setObjetoMatematicoEnUso={setObjetoMatematicoEnUso}/> : null}
                 {accion === 'contenidoFinal' ? (
@@ -1000,7 +1112,8 @@ export function ApuMicro(){
                                                         {option}
                                                     </option>
                                                 ))}
-                                            </select>*/}                                              
+                                            </select>*/} 
+                                            <h1>{objetoMatematicoEnUso}</h1>                                             
                     </div> 
                     <div className="scroll" style={{ height: '80vh' }}>                                      
                     {objetoMatematico !== undefined ? (
@@ -1051,7 +1164,7 @@ export function ApuMicro(){
                                     }
                                     return (
                                     <div onClick={() => handleOnClick(item.titulo, item.subtitulo, key, value)} className="centrar" style={{ display: 'block', width: '50%' }} key={key}>
-                                        <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{ padding: '5px', width: '100%', minWidth: 'fit-content' }}>{key}</div>
+                                        <div className='resaltar color1 borde bordes noSaltoDeLinea' style={{ padding: '5px', width: '100%', minWidth: 'fit-content' }}>{key} </div>
                                         <div className='resaltar color2 borde bordes noSaltoDeLinea' style={{ padding: '5px', width: '100%', minWidth: 'fit-content' }}>{value}</div>
                                     </div>
                                     )
@@ -1114,15 +1227,9 @@ export function ApuMicro(){
                                     </div> 
                                     )}
                                     {escogerMaterial === true && (
-
-
                                         <div className="centrar" style={{display:'block', width: '50%'}}>
                                         {objetosMateriales().map(item => <button onClick={() => insertarNuevoObjeto(item.titulo)} className="botones">{item.titulo}</button>)}
-                                        
                                         </div>
-
-
-
                                     )}
                                     {coorPaso.acc === 'nueva llave valor' && (
                                         <div className="centrar" style={{display:'flex', width: '50%'}}>
@@ -1150,13 +1257,14 @@ export function ApuMicro(){
                                         modalContent.hasOwnProperty('item') ? (
                                                 <div>
                                                     <div style={{height: 'fit-content', width: '100%'}} className="scroll">
-                                                    {editarMatriz(modalContent['item'])}
+                                                    {editarMatriz(modalContent['item'])}hi
                                                     </div>
                                                 </div>
                                             ) : 
                                                 coorPaso.acc !== 'nueva llave valor' && (
                                                     <>
                                                         {Object.keys(modalContent).map(renderLabel)}
+                                                        {/*<MaterialFilter data={materialesRedux} onSelect={(selectedItem) => mirar(selectedItem.precio)}/>//pilas està doble*/}
                                                     </>
                                                 )
                                         :

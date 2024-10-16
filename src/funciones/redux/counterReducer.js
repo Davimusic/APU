@@ -5,6 +5,7 @@ const initialState = {
   correo: '',
   accion: '',//contenidoFinal, 'mostrarProyectos',//para estar entre login, un apu en especifico y los proyectos creados
   nombreObjetoMatematicoEnUso: '',
+  materiales: {}
 };
 
 const counterReducer = (state = initialState, action) => {
@@ -38,6 +39,11 @@ const counterReducer = (state = initialState, action) => {
         return {
           ...state,
           nombreObjetoMatematicoEnUso: action.payload, 
+        };
+    case 'UPDATE_MATERIALES':
+        return {
+          ...state,
+          materiales: action.payload, 
         };        
     default:
       return state;

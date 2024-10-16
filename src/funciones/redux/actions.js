@@ -39,3 +39,10 @@ export const updateNombreObjetoMatematicoEnUso = (value) => {
         payload: value,
     };
 };
+
+export const updateMateriales = (value) => {
+    return {
+        type: 'UPDATE_MATERIALES',
+        payload: value,
+    };
+};
