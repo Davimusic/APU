@@ -14,13 +14,12 @@ export default function Login() {
     const [password2, setPassword2] = useState('');
     const [showPassword2, setShowPassword2] = useState(false);
 
-    const correo = useSelector(state => state.correo)
     const dispatch = useDispatch();
 
     useEffect(() => {
-        //fetchMaterials()
-        dispatch(updateMateriales(materialesTesteo()))
-        console.log(materialesTesteo);
+        fetchMaterials()
+        //dispatch(updateMateriales(materialesTesteo()))
+        //console.log(materialesTesteo);
         
     }, []);
 
@@ -60,6 +59,7 @@ export default function Login() {
             if (res) {
                 console.log(res);
                 if(res['loginState']){
+                    localStorage.setItem('email', correo)
                     dispatch(updateCorreo(email))
                     dispatch(updateAccion('mostrarProyectos'))
                 }
@@ -105,21 +105,57 @@ export default function Login() {
         }
     }
 
+    async function createUser(correo, contrasena) {
+        try {
+          const response = await fetch('/api/createUser', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ correo, contrasena }),
+          });
+      
+          if (!response.ok) {
+            if (response.status === 409) {
+              console.error('Correo existente');
+              alert('Correo existente')
+              return { error: 'Correo existente' };
+            }
+            const message = `An error has occurred: ${response.status}`;
+            throw new Error(message);
+          }
+      
+          const result = await response.json();
+          console.log(result);
+          alert('usuario creado exitosamente')
+      
+          if (result.message === 'Usuario creado') {
+            return { success: 'Usuario creado' };
+          }
+      
+          return result;
+        } catch (error) {
+          console.error('Error al crear el usuario:', error);
+        }
+    }
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if(showPassword2 === true){
             if(password === password2){
                 console.log({ email, password });
-                //dispatch(updateCorreo(email))
-                //dispatch(updateAccion('mostrarProyectos'))
+                createUser(email, password)
+                /*dispatch(updateCorreo(email))
+                dispatch(updateAccion('mostrarProyectos'))*/
             } else {
                 alert('contraseñas incorrectas, no coinciden')
             }
         } else {
 
-            //fetchData(email, password)
-            dispatch(updateCorreo(email))
-                    dispatch(updateAccion('mostrarProyectos'))
+            fetchData(email, password)
+            //dispatch(updateCorreo(email))
+            //dispatch(updateAccion('mostrarProyectos'))
         }
     };
 

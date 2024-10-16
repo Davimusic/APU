@@ -7,7 +7,7 @@ import { updateNombreObjetoMatematicoEnUso, updateAccion } from "@/funciones/red
 
 
 
-export default function MisProyectos({setObjetoMatematicoEnUso}) {
+export default function MisProyectos({setObjetoMatematicoEnUso, crearNuevoObjetoMatematico}) {
     const [nombresProyectos, setNombresProyectos] = useState([]);
 
     const objetosMatematicos = useSelector(state => state.objetosMatematicos);
@@ -36,6 +36,7 @@ export default function MisProyectos({setObjetoMatematicoEnUso}) {
 
     return (
         <div style={{width:  '90vw', height: '90vh', overflow: 'auto', borderRadius: '0.5em'}}>
+            <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
             {nombresProyectos.length > 0 ? (
                 <table className="table">
                     <thead className="thead">

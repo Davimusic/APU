@@ -15,6 +15,7 @@ import { updateInfo, updateMirar, updateObjetosMatematicos, updateCorreo, update
 import MaterialFilter from "./MaterialFilter ";
 
 
+
 import usuarioTesteo from "./usuarioTesteo";
 
 
@@ -51,13 +52,55 @@ export function ApuMicro(){
     }, [nombresObjetosMatematicos, objetoMatematicoEnUso]);
 
     useEffect(() => {
-        console.log(accion);
-    }, [accion]);
+        console.log(correo);
+        if(correo != ''){
+            const fetchData = async (correo) => {
+                console.log(correo);
+                
+                //console.log(localStorage.getItem('email'));
+                
+                const result = await llamarTodoObjetoMatematico(correo); // Enviar el correo aquí
+            
+                console.log(result);
+                console.log(result['objetos'][0]);
+            
+                let obj = result['objetos'][0];
+                let objKeys = Object.keys(result['objetos'][0]);
+                dispatch(updateObjetosMatematicos(obj));
+                setNombresObjetosMatematicos(objKeys);
+                dispatch(updateInfo(obj[objKeys[0]])); // dispatch(updateInfo(obj[objKeys[0]]['objetos']))
+                setObjetoMatematicoEnUso(objKeys[0]); // setReduxInfo(obj[objKeys[0]]['objetos'])
+            
+                try {
+                    const response = await fetch('/api/createDocument', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+            
+                    if (!response.ok) {
+                        const message = `An error has occurred: ${response.status}`;
+                        throw new Error(message);
+                    }
+            
+                    const result = await response.json();
+                    alert('fue')
+                    console.log(result);
+                    return result;
+                } catch (error) {
+                    console.error('Error al guardar el objeto:', error);
+                }
+            };
+            fetchData(correo);
+        }
+    }, [correo]);
 
     useEffect(() => {
         /*const fetchData = async () => {
-            localStorage.setItem('email', 'davipianof@gmail.com')
-            const result = await llamarTodoObjetoMatematico();
+            //localStorage.setItem('email', correo)
+            const result = await llamarTodoObjetoMatematico(correo);
 
             console.log(result);
             console.log(result['objetos'][0]);
@@ -90,14 +133,10 @@ export function ApuMicro(){
                 return result;
             } catch (error) {
                 console.error('Error al guardar el objeto:', error);
-            }
-
-            
-            
-        };
-    
-        fetchData();*/
-        let obj = usuarioTesteo()
+            }   
+        };*/
+        
+        /*let obj = usuarioTesteo()
         let objKeys = Object.keys(usuarioTesteo())
         console.log(usuarioTesteo());
         
@@ -105,7 +144,7 @@ export function ApuMicro(){
         dispatch(updateObjetosMatematicos(obj))
         setNombresObjetosMatematicos(objKeys)
         dispatch(updateInfo(obj[objKeys[0]]))//dispatch(updateInfo(obj[objKeys[0]]['objetos']))
-        setObjetoMatematicoEnUso(objKeys[0])
+        setObjetoMatematicoEnUso(objKeys[0])*/
     }, []);
 
     function cambiarNombreLlave(obj, llaveVieja, llaveNueva) {
@@ -246,8 +285,8 @@ export function ApuMicro(){
             
             setModalContent({
                 ...modalContent,
-                ['value']: d['precio'],
-                ['key']: `${d['material']} de ${d['nombreEmpresa']} con ${d['cantidad']} disponible(s)`
+                ['value']: d['precioFraccionado'],
+                ['key']: `${d['material']} al ${d['fractionFactor']}% del precio mostrado de la empresa ${d['nombreEmpresa']} con ${d['cantidad']} disponible(s)`
             });
         }
         
@@ -510,10 +549,6 @@ export function ApuMicro(){
         setModalContent({ ...modalContent, [key]: precio });
     };*/
     const renderLabel = (key) => {
-        
-    
-        
-    
         const isTitle = ['titulo', 'subtitulo'].includes(coorPaso.tittle) && ['tittle', 'subtittle'].includes(key);
         const isNotUnitValue = modalContent[key] !== 'valor unitario' && key !== 'tittle' && key !== 'subtittle' && modalContent[key] !== 'valor dinamico';
     
@@ -533,19 +568,14 @@ export function ApuMicro(){
                         ) : (
                             inputType === 'number' ? (
                                 <>
-                                <MaterialFilter
-                                data={materialesRedux}
-                                onSelect={(precio) => mirar(precio)}
-                                />
-                                <input
-                                    id={uniqueId}
-                                    type="number"
-                                    name={key}
-                                    value={modalContent[key] || 0}//selectedMaterial || 
-                                    onChange={handleInputChange}
-                                    className="input-moderno"
-                                />
-                                
+                                    <input
+                                        id={uniqueId}
+                                        type="number"
+                                        name={key}
+                                        value={modalContent[key] || 0}//selectedMaterial || 
+                                        onChange={handleInputChange}
+                                        className="input-moderno"
+                                    />
                                 </>
                             ) : (
                                 <input
@@ -1096,13 +1126,13 @@ export function ApuMicro(){
             </head>
             <body className='imagenFondo' >
                 {accion === '' ? <Login/> : null}
-                {accion === 'mostrarProyectos' ? <MisProyectos setObjetoMatematicoEnUso={setObjetoMatematicoEnUso}/> : null}
+                {accion === 'mostrarProyectos' ? <MisProyectos setObjetoMatematicoEnUso={setObjetoMatematicoEnUso} crearNuevoObjetoMatematico={crearNuevoObjetoMatematico}/> : null}
                 {accion === 'contenidoFinal' ? (
                 <div className="" style={{ height: '100vh', width: '100%'}}>
                     <Menu/>
                     <div className="centrar" style={{display: 'flex', flexWrap: 'wrap', height: 'fit-content', padding: '20px', borderBottom: '1px solid white', backgroundColor: '#00000071'}}>                    
                                             <h2 style={{paddingTop: '15px'}}>Total operación: $ {sumaObjetos()}</h2>
-                                            <img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />
+                                            {/*<img onClick={()=> crearNuevoObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjetoMatematico_gnxugb.png" title="Crea un nuevo objeto matematico" alt="Descripción de la imagen" />*/}
                                             <img onClick={()=> crearNuevoObjeto()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/crearNuevoObjeto_o9hw7f.png" title="Crea un nuevo objeto en el actual lugar" alt="Descripción de la imagen" />
                                             <img onClick={()=> setActivarGuardar(activarGuardar + 1)} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1706024045/save_pmx5wo.png" title="Guardar en memoria" alt="Descripción de la imagen" />
                                             <img onClick={()=> editarNombreObjetoMatematico()} className="imagenes" src="https://res.cloudinary.com/dplncudbq/image/upload/v1701787300/edit_cdqnpt.png" title="Edita el nombre del objeto matematico actual" alt="Descripción de la imagen" />
@@ -1257,14 +1287,17 @@ export function ApuMicro(){
                                         modalContent.hasOwnProperty('item') ? (
                                                 <div>
                                                     <div style={{height: 'fit-content', width: '100%'}} className="scroll">
-                                                    {editarMatriz(modalContent['item'])}hi
+                                                    {editarMatriz(modalContent['item'])}
                                                     </div>
                                                 </div>
                                             ) : 
                                                 coorPaso.acc !== 'nueva llave valor' && (
                                                     <>
                                                         {Object.keys(modalContent).map(renderLabel)}
-                                                        {/*<MaterialFilter data={materialesRedux} onSelect={(selectedItem) => mirar(selectedItem.precio)}/>//pilas està doble*/}
+                                                        {<MaterialFilter
+                                                            data={materialesRedux}
+                                                            onSelect={(precio) => mirar(precio)}
+                                                        />}
                                                     </>
                                                 )
                                         :
