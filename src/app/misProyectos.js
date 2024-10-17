@@ -3,7 +3,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';;
 import '../estilos/misProyectos.css';
-import { updateNombreObjetoMatematicoEnUso, updateAccion } from "@/funciones/redux/actions";
+import { updateNombreObjetoMatematicoEnUso, updateAccion, updateObjetosMatematicos } from "@/funciones/redux/actions";
 
 
 
@@ -29,9 +29,44 @@ export default function MisProyectos({setObjetoMatematicoEnUso, crearNuevoObjeto
         setObjetoMatematicoEnUso(value)
     }
 
-    function borrar(value){
-        alert('falta')
+    async function borrar(value) { 
+        try { 
+            const response = await fetch('/api/deleteProject', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json', 
+                }, 
+                body: JSON.stringify({ 
+                    correo: localStorage.getItem('email'), 
+                    proyecto: value, 
+                }), 
+            }); 
+            
+            if (!response.ok) { 
+                const errorData = await response.json(); 
+                const message = `An error has occurred: ${response.status}, ${errorData.error}`; 
+                errorData.error === 'Proyecto no encontrado' 
+                    ? setErrorMessage(`${errorData.error}, asegúrate de que el proyecto exista.`) 
+                    : setErrorMessage(message); 
+                throw new Error(message); 
+            } 
+            
+            const result = await response.json(); 
+            //setErrorMessage('Proyecto eliminado exitosamente'); 
+            console.log(result);
+            console.log(result['ObjetosMatematicos']);
+            dispatch(updateObjetosMatematicos(result['ObjetosMatematicos']))
+            
+            return result; // Devuelve el resultado 
+        } catch (error) { 
+            console.log(error); 
+            console.error('Error eliminando el proyecto:', error); 
+            return error; // Devuelve el error 
+        } 
     }
+    
+
+
 
 
     return (
