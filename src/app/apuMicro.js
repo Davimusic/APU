@@ -7,6 +7,7 @@ import { Menu } from "@/components/menu";
 import llamarTodoObjetoMatematico from "@/funciones/conectoresBackend/llamarTodoObjetoMatematico";
 import Login from "./login";
 import MisProyectos from "./misProyectos";
+import CompanyTable from "./CompanyTables";
 
 //redux
 import { useSelector } from 'react-redux';
@@ -38,6 +39,7 @@ export function ApuMicro(){
     const [errorMessage, setErrorMessage] = useState(null);
     const [selectedValue, setSelectedValue] = useState('numero');
     const [activarGuardar, setActivarGuardar] = useState(0);
+    const [contactosEmpresas, setContactosEmpresas] = useState({});
 
     //redux
     const objetosMatematicos = useSelector(state => state.objetosMatematicos);
@@ -49,6 +51,7 @@ export function ApuMicro(){
 
     useEffect(() => {
         setNombresObjetosMatematicos(nombresObjetosMatematicos.sort())
+        setContactosEmpresas(combineObjects(extractQuotedTextsAndCreateObjects(objetosMatematicos[objetoMatematicoEnUso]), materialesRedux)['combinedResult'])
     }, [nombresObjetosMatematicos, objetoMatematicoEnUso]);
 
     useEffect(() => {
@@ -86,7 +89,7 @@ export function ApuMicro(){
                     }
             
                     const result = await response.json();
-                    alert('fue')
+                    //alert('fue')
                     console.log(result);
                     return result;
                 } catch (error) {
@@ -98,54 +101,14 @@ export function ApuMicro(){
     }, [correo]);
 
     useEffect(() => {
-        /*const fetchData = async () => {
-            //localStorage.setItem('email', correo)
-            const result = await llamarTodoObjetoMatematico(correo);
+        setContactosEmpresas(combineObjects(extractQuotedTextsAndCreateObjects(objetosMatematicos[objetoMatematicoEnUso]), materialesRedux)['combinedResult'])
+        //console.log(combineObjects(extractQuotedTextsAndCreateObjects(objetosMatematicos[objetoMatematicoEnUso]), materialesRedux));
+        console.log(combineObjects(extractQuotedTextsAndCreateObjects(objetosMatematicos[objetoMatematicoEnUso]), materialesRedux)['combinedResult']);
+    }, [objetoMatematicoEnUso]);
 
-            console.log(result);
-            console.log(result['objetos'][0]);
-
-            let obj = result['objetos'][0]
-            let objKeys = Object.keys(result['objetos'][0])
-
-            dispatch(updateObjetosMatematicos(obj))
-            setNombresObjetosMatematicos(objKeys)
-            dispatch(updateInfo(obj[objKeys[0]]))//dispatch(updateInfo(obj[objKeys[0]]['objetos']))
-            setObjetoMatematicoEnUso(objKeys[0])
-            //setReduxInfo(obj[objKeys[0]]['objetos'])
-            
-            try {
-                const response = await fetch('/api/createDocument', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data), 
-                });
-            
-                if (!response.ok) {
-                    const message = `An error has occurred: ${response.status}`;
-                    throw new Error(message);
-                }
-            
-                const result = await response.json();
-                console.log(result);
-                return result;
-            } catch (error) {
-                console.error('Error al guardar el objeto:', error);
-            }   
-        };*/
-        
-        /*let obj = usuarioTesteo()
-        let objKeys = Object.keys(usuarioTesteo())
-        console.log(usuarioTesteo());
-        
-
-        dispatch(updateObjetosMatematicos(obj))
-        setNombresObjetosMatematicos(objKeys)
-        dispatch(updateInfo(obj[objKeys[0]]))//dispatch(updateInfo(obj[objKeys[0]]['objetos']))
-        setObjetoMatematicoEnUso(objKeys[0])*/
-    }, []);
+    useEffect(() => {
+        setContactosEmpresas(combineObjects(extractQuotedTextsAndCreateObjects(objetosMatematicos[objetoMatematicoEnUso]), materialesRedux)['combinedResult'])
+    }, [objetosMatematicos]);
 
     function cambiarNombreLlave(obj, llaveVieja, llaveNueva) {
         if (obj.hasOwnProperty(llaveVieja)) {
@@ -202,6 +165,154 @@ export function ApuMicro(){
     useEffect(() => {
         handleSelectChangeNombresObjetosMatematicos(objetoMatematicoEnUso)
     }, [objetoMatematicoEnUso]);
+
+    function extractQuotedTextsAndCreateObjects(objects) {
+        const result = [];
+    
+        console.log(objects);
+        if (Array.isArray(objects) && objects.length > 0) {
+            console.log('siiii');
+        } else {
+            console.log('extractQuotedTextsAndCreateObjects no es objeto');
+            return result;
+        }
+    
+        objects.forEach(obj => {
+            if (obj && obj["valor unitario"] && Array.isArray(obj["valor unitario"])) {
+                obj["valor unitario"].forEach(value => {
+                    if (Array.isArray(value)) {
+                        value.forEach(subValue => {
+                            if (typeof subValue === "string") {
+                                const regex = /'([^']+)'/g;
+                                let match;
+                                while (match = regex.exec(subValue)) {
+                                    const nombreEmpresa = match[1];
+                                    const newObject = {
+                                        titulo: obj.titulo || "",
+                                        descripcion: subValue,
+                                        nombreEmpresa: nombreEmpresa
+                                    };
+                                    result.push(newObject);
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                console.log(`El objeto ${JSON.stringify(obj)} no tiene la estructura esperada.`);
+            }
+        });
+    
+        console.log('extractQuotedTextsAndCreateObjects');
+        console.log(result);
+        return result;
+    }
+    
+    /*function combineObjects(objList, companyData) {
+        const combinedResult = {};
+        const losQueNoPasan = {}
+
+        if (!Array.isArray(objList)) {
+            console.error("El parámetro 'objList' no es un array.");
+            return combinedResult;
+        }
+    
+        if (typeof companyData !== "object" || companyData === null) {
+            console.error("El parámetro 'companyData' no es un objeto.");
+            return combinedResult;
+        }
+    
+        objList.forEach(item => {
+            const nombreEmpresa = item.nombreEmpresa;
+    
+            // Buscar empresa en el objeto companyData
+            for (const key in companyData) {
+                if (companyData[key] && companyData[key]["Nombre empresa"] === nombreEmpresa) {
+                    if (!combinedResult[nombreEmpresa]) {
+                        combinedResult[nombreEmpresa] = {
+                            empresa: companyData[key],
+                            descripciones: [],
+                            contacto: companyData[key]["Contacto"] || null
+                        };
+                    }
+                    combinedResult[nombreEmpresa].descripciones.push(item.descripcion);
+                }
+            }
+        });
+    
+        return combinedResult;
+    }*/
+
+    function combineObjects(objList, companyData) {
+    const combinedResult = {};
+    const losQueNoPasan = {};
+
+    if (!Array.isArray(objList)) {
+        console.error("El parámetro 'objList' no es un array.");
+        return { combinedResult, losQueNoPasan };
+    }
+
+    if (typeof companyData !== "object" || companyData === null) {
+        console.error("El parámetro 'companyData' no es un objeto.");
+        return { combinedResult, losQueNoPasan };
+    }
+
+    objList.forEach(item => {
+        const nombreEmpresa = item.nombreEmpresa;
+        let empresaEncontrada = false;
+
+        // Buscar empresa en el objeto companyData
+        for (const key in companyData) {
+            if (companyData[key] && companyData[key]["Nombre empresa"] === nombreEmpresa) {
+                empresaEncontrada = true;
+                if (!combinedResult[nombreEmpresa]) {
+                    combinedResult[nombreEmpresa] = {
+                        empresa: companyData[key],
+                        descripciones: [],
+                        contacto: companyData[key]["Contacto"] || null
+                    };
+                }
+                combinedResult[nombreEmpresa].descripciones.push(item.descripcion);
+            }
+        }
+
+        // Si la empresa no fue encontrada en companyData, agregar a losQueNoPasan
+        if (!empresaEncontrada) {
+            if (!losQueNoPasan[nombreEmpresa]) {
+                losQueNoPasan[nombreEmpresa] = {
+                    empresa: { "Nombre empresa": nombreEmpresa },
+                    descripciones: [],
+                    contacto: "N/A" // O cualquier valor por defecto si no se encuentra el contacto
+                };
+            }
+            losQueNoPasan[nombreEmpresa].descripciones.push(item.descripcion);
+        }
+    });
+
+    return { combinedResult, losQueNoPasan };
+}
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     function calculation(item, arr) {
         //console.log(arr);
@@ -286,7 +397,7 @@ export function ApuMicro(){
             setModalContent({
                 ...modalContent,
                 ['value']: d['precioFraccionado'],
-                ['key']: `${d['material']} al ${d['fractionFactor']}% del precio mostrado de la empresa ${d['nombreEmpresa']} con ${d['cantidad']} disponible(s)`
+                ['key']: `${d['material']} al ${d['fractionFactor']}% del precio mostrado de la empresa '${d['nombreEmpresa']}' con ${d['cantidad']} disponible(s)`
             });
         }
         
@@ -851,20 +962,20 @@ export function ApuMicro(){
     }
 
     async function handleSelectChangeNombresObjetosMatematicos(event){
-        console.log(event);
+        //console.log(event);
         
         setCoorPaso({"newCoor":0,"key":"valor unitario"})
         setObjetoMatematicoEnUso(event);
         setComparacionNombreObjeto(event)
         for (let llave in objetosMatematicos) {
-            console.log(llave);
+            //console.log(llave);
             llave === event ? console.log('si') : null
         }
-        console.log(event);
-        console.log(objetosMatematicos);
+        //console.log(event);
+        //console.log(objetosMatematicos);
         let paso = {...objetosMatematicos}
         paso = paso[event]
-        console.log(paso);
+        //console.log(paso);
         
         dispatch(updateInfo(paso))
     }
@@ -1207,6 +1318,7 @@ export function ApuMicro(){
                         );
                     })
                     ) : null}
+                    <CompanyTable data={contactosEmpresas}/>
                     </div>
                 </div>
                 ) : null}
